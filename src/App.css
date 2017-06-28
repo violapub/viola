@@ -1,0 +1,54 @@
+.App {
+  text-align: center;
+}
+
+.App-header {
+  box-sizing: border-box;
+  text-align: center;
+  background-color: #222;
+  height: 40px;
+  padding: 10px;
+  color: white;
+}
+
+.App-brambleroot {
+  position: absolute;
+  top: 90px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+.ToolBar,
+.ToolBar-filetree_pane,
+.ToolBar-editor_pane,
+.ToolBar-preview_pane {
+  height: 50px;
+}
+
+.ToolBar {
+  display: flex;
+  flex-direction: row;
+}
+.ToolBar > * {
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.ToolBar-filetree_pane {
+  background-color: #222;
+}
+
+.ToolBar-editor_pane {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding-left: 20px;
+  padding-right: 20px;
+  background-color: #3F3F3F;
+  color: #dcdcdc;
+}
+
+.ToolBar-preview_pane {
+  background-color: #EAEAEA;
+}

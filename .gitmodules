@@ -1,0 +1,3 @@
+[submodule "brackets"]
+	path = brackets
+	url = https://github.com/pentapod/brackets.git
