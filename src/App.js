@@ -75,7 +75,7 @@ class App extends Component {
           <div>Viola</div>
         </div>
         {this.state.bramble &&
-          <ToolBar {...{ bramble }} />
+          <ToolBar bramble={bramble} />
         }
         <div id="bramble-root" className="App-brambleroot"></div>
       </div>

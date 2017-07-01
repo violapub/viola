@@ -50,5 +50,10 @@
 }
 
 .ToolBar-preview_pane {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding-left: 20px;
+  padding-right: 20px;
   background-color: #EAEAEA;
 }

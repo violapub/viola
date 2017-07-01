@@ -12,6 +12,8 @@ export default class ToolBar extends React.Component {
     editorPaneWidth: 0,
     previewPaneWidth: 0,
     filename: '',
+    isMobilePreview: false,
+    isPrintPreview: false,
   };
 
   initBramble = (bramble) => {
@@ -49,7 +51,37 @@ export default class ToolBar extends React.Component {
     this.setState(Object.assign({}, this.state, {
       filename,
     }));
-  }
+  };
+
+  onMobileCheckboxChange = () => {
+    if (this.state.isMobilePreview) {
+      this.props.bramble.useDesktopPreview();
+    }
+    else {
+      this.props.bramble.useMobilePreview();
+    }
+
+    this.setState(Object.assign({}, this.state, {
+      isMobilePreview: !this.state.isMobilePreview,
+    }));
+  };
+
+  onPrintCheckboxChange = () => {
+    if (this.state.isPrintPreview) {
+      if (this.state.isMobilePreview) {
+        this.props.bramble.useMobilePreview();
+      }
+      else {
+        this.props.bramble.useDesktopPreview();
+      }
+    }
+    else {
+      this.props.bramble.usePrintPreview();
+    }
+    this.setState(Object.assign({}, this.state, {
+      isPrintPreview: !this.state.isPrintPreview,
+    }));
+  };
 
   componentWillMount() {
     this.initBramble(this.props.bramble);
@@ -68,7 +100,21 @@ export default class ToolBar extends React.Component {
         <div className="ToolBar-editor_pane" style={{ flexBasis: editorPaneWidth }}>
           <span className="ToolBar-filename">{this.state.filename}</span>
         </div>
-        <div className="ToolBar-preview_pane" style={{ flexBasis: previewPaneWidth }}></div>
+        <div className="ToolBar-preview_pane" style={{ flexBasis: previewPaneWidth }}>
+          <label>
+            <input type="checkbox" checked={this.state.isMobilePreview}
+              disabled={this.state.isPrintPreview}
+              onChange={this.onMobileCheckboxChange}
+            />
+            Mobile preview
+          </label>
+          <label>
+            <input type="checkbox" checked={this.state.isPrintPreview}
+              onChange={this.onPrintCheckboxChange}
+            />
+            Print preview
+          </label>
+        </div>
       </div>
     );
   }
