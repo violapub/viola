@@ -44,15 +44,16 @@ class App extends Component {
       }
 
       try {
-        fs.stat(projectRoot, (err, stats) => {
-          if (err) throw err;
-          if (stats.isDirectory()) {
+        fs.exists(projectRoot, (exists) => {
+          if (exists) {
             prepareIndexPage(resolve);
           }
-          sh.mkdirp(projectRoot, (err) => {
-            if (err) throw err;
-            prepareIndexPage(resolve);
-          });
+          else {
+            sh.mkdirp(projectRoot, (err) => {
+              if (err) throw err;
+              prepareIndexPage(resolve);
+            });
+          }
         });
       } catch (e) {
         reject(e);
