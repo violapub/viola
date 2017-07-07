@@ -73,6 +73,7 @@ class App extends Component {
     });
 
     window.Bramble.on('ready', (bramble) => {
+      bramble.showSidebar();
       this.setState({
         bramble: bramble,
       })
