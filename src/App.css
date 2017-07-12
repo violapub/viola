@@ -1,6 +1,25 @@
 .App {
   text-align: center;
 }
+.App.modal-open:after {
+  content: '';
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 90px;
+  background-color: rgba(0, 0, 0, 0.7);
+  animation: showModalBackdrop 0.1s ease-out;
+}
+@keyframes showModalBackdrop {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: .8;
+  }
+}
 
 .App-header {
   box-sizing: border-box;
@@ -36,7 +55,18 @@
 }
 
 .ToolBar-filetree_pane {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding-left: 20px;
+  padding-right: 14px;
   background-color: #222;
+}
+
+.ToolBar-filetree_right {
+  display: inline-flex;
+  flex-direction: row;
 }
 
 .ToolBar-editor_pane {
@@ -56,4 +86,23 @@
   padding-left: 20px;
   padding-right: 20px;
   background-color: #EAEAEA;
+}
+
+.ToolBar-button {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  padding: 6px;
+  margin: 0 3px;
+  cursor: pointer;
+  transition: background-color 0.1s ease-out;
+  background-color: transarent;
+  color: #bbb;
+}
+.ToolBar-button:hover {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+.ToolBar-button:active {
+  color: #dcdcdc;
+  background-color: rgba(0, 0, 0, 0.4);
 }

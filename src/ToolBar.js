@@ -1,4 +1,5 @@
 import React from 'react';
+import {Icon} from 'react-fa';
 import './App.css';
 
 export default class ToolBar extends React.Component {
@@ -53,6 +54,21 @@ export default class ToolBar extends React.Component {
     }));
   };
 
+  onUploadButtonClick = () => {
+    this.props.bramble.showUploadFilesDialog();
+  };
+
+  onCreateNewFileButtonClick = () => {
+    // this.props.bramble.addNewFile({
+    //   contents: '',
+    // });
+    this.props.bramble.createNewFile();
+  };
+
+  onCreateNewFolderButtonClick = () => {
+    this.props.bramble.addNewFolder();
+  };
+
   onMobileCheckboxChange = () => {
     if (this.state.isMobilePreview) {
       this.props.bramble.useDesktopPreview();
@@ -96,7 +112,20 @@ export default class ToolBar extends React.Component {
 
     return (
       <div className="ToolBar">
-        <div className="ToolBar-filetree_pane" style={{ flexBasis: filetreePaneWidth }}></div>
+        <div className="ToolBar-filetree_pane" style={{ flexBasis: filetreePaneWidth }}>
+          <div className="ToolBar-filetree_left"></div>
+          <div className="ToolBar-filetree_right">
+            <div className="ToolBar-button" onClick={this.onUploadButtonClick}>
+              <Icon name="upload" />
+            </div>
+            <div className="ToolBar-button" onClick={this.onCreateNewFileButtonClick}>
+              <Icon name="plus" />
+            </div>
+            <div className="ToolBar-button" onClick={this.onCreateNewFolderButtonClick}>
+              <Icon name="folder" />
+            </div>
+          </div>
+        </div>
         <div className="ToolBar-editor_pane" style={{ flexBasis: editorPaneWidth }}>
           <span className="ToolBar-filename">{this.state.filename}</span>
         </div>

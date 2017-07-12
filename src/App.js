@@ -20,6 +20,7 @@ class App extends Component {
 
   state = {
     bramble: null,
+    modalOpen: false,
   };
 
   ensureFiles = () => {
@@ -61,6 +62,24 @@ class App extends Component {
     });
   }
 
+  initBramble = (bramble) => {
+    bramble.showSidebar();
+    bramble.on('dialogOpened', () => {
+      this.setState(Object.assign({}, this.state, {
+        modalOpen: true,
+      }));
+    });
+    bramble.on('dialogClosed', () => {
+      this.setState(Object.assign({}, this.state, {
+        modalOpen: false,
+      }));
+    });
+
+    this.setState(Object.assign({}, this.state, {
+      bramble: bramble,
+    }));
+  };
+
   componentDidMount() {
     window.Bramble.load('#bramble-root', {
       url: 'http://localhost:8000/dist/index.html',
@@ -73,10 +92,7 @@ class App extends Component {
     });
 
     window.Bramble.on('ready', (bramble) => {
-      bramble.showSidebar();
-      this.setState({
-        bramble: bramble,
-      })
+      this.initBramble(bramble);
     });
 
     window.Bramble.on('readyStateChange', (previous, current) => {
@@ -92,7 +108,7 @@ class App extends Component {
     const { bramble } = this.state;
 
     return (
-      <div className="App">
+      <div className={`App ${this.state.modalOpen? 'modal-open' : ''}`}>
         <div className="App-header">
           <div>Viola</div>
         </div>
