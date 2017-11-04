@@ -9,9 +9,6 @@ export default class ToolBar extends React.Component {
   };
 
   state = {
-    filetreePaneWidth: 0,
-    editorPaneWidth: 0,
-    previewPaneWidth: 0,
     filename: '',
     isMobilePreview: false,
     isPrintPreview: false,
@@ -20,14 +17,6 @@ export default class ToolBar extends React.Component {
 
   initBramble = (bramble) => {
     let nextState = Object.assign({}, this.state);
-    if (bramble.getLayout()) {
-      const data = bramble.getLayout();
-      nextState = Object.assign(nextState, {
-        filetreePaneWidth: data.sidebarWidth,
-        editorPaneWidth: data.firstPaneWidth,
-        previewPaneWidth: data.secondPaneWidth,
-      });
-    }
     if (bramble.getFilename()) {
       nextState = Object.assign(nextState, {
         filename: bramble.getFilename(),
@@ -42,11 +31,9 @@ export default class ToolBar extends React.Component {
   };
 
   updateLayout = (data) => {
-    this.setState(Object.assign({}, this.state, {
-      filetreePaneWidth: data.sidebarWidth,
-      editorPaneWidth: data.firstPaneWidth,
-      previewPaneWidth: data.secondPaneWidth,
-    }));
+    this.filetreePaneElement.style.flexBasis = `${data.sidebarWidth}px`;
+    this.editorPaneElement.style.flexBasis = `${data.firstPaneWidth}px`;
+    this.previewPaneElement.style.flexBasis = `${data.secondPaneWidth}px`;
   };
 
   setNavFilename = (filename) => {
@@ -125,15 +112,9 @@ export default class ToolBar extends React.Component {
   }
 
   render() {
-    const {
-      filetreePaneWidth,
-      editorPaneWidth,
-      previewPaneWidth,
-    } = this.state;
-
     return (
       <div className="ToolBar">
-        <div className="ToolBar-filetree_pane" style={{ flexBasis: filetreePaneWidth }}>
+        <div className="ToolBar-filetree_pane" ref={it => this.filetreePaneElement = it}>
           <div className="ToolBar-filetree_left"></div>
           <div className="ToolBar-filetree_right">
             <div className="ToolBar-button" onClick={this.onUploadButtonClick}>
@@ -147,10 +128,10 @@ export default class ToolBar extends React.Component {
             </div>
           </div>
         </div>
-        <div className="ToolBar-editor_pane" style={{ flexBasis: editorPaneWidth }}>
+        <div className="ToolBar-editor_pane" ref={it => this.editorPaneElement = it}>
           <span className="ToolBar-filename">{this.state.filename}</span>
         </div>
-        <div className="ToolBar-preview_pane" style={{ flexBasis: previewPaneWidth }}>
+        <div className="ToolBar-preview_pane" ref={it => this.previewPaneElement = it}>
           <label>
             <input type="checkbox" checked={this.state.isMobilePreview}
               disabled={this.state.isPrintPreview}
