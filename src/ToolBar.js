@@ -15,6 +15,7 @@ export default class ToolBar extends React.Component {
     filename: '',
     isMobilePreview: false,
     isPrintPreview: false,
+    isFullscreenPreview: false,
   };
 
   initBramble = (bramble) => {
@@ -99,6 +100,26 @@ export default class ToolBar extends React.Component {
     }));
   };
 
+  onFullscreenButtonClick = () => {
+    if (this.state.isFullscreenPreview) {
+      this.props.bramble.disableFullscreenPreview();
+    }
+    else {
+      this.props.bramble.enableFullscreenPreview();
+    }
+
+    this.setState(Object.assign({}, this.state, {
+      isFullscreenPreview: !this.state.isFullscreenPreview,
+    }));
+  };
+
+  onOpenPrintPageButtonClick = () => {
+    const targetUrl = 'http://localhost:8000/dist/vfs' + this.props.bramble.getFullPath();
+    const openUrl = `http://localhost:8000/dist/print.html?render=${encodeURIComponent(targetUrl)}`;
+    window.open(openUrl, 'Viola print page', 'width=800,height=600');
+    this.props.bramble.openPrintPage();
+  }
+
   componentWillMount() {
     this.initBramble(this.props.bramble);
   }
@@ -143,6 +164,12 @@ export default class ToolBar extends React.Component {
             />
             Print preview
           </label>
+          <button onClick={this.onFullscreenButtonClick}>
+            fullscreen
+          </button>
+          <button onClick={this.onOpenPrintPageButtonClick}>
+            openPrintPage
+          </button>
         </div>
       </div>
     );
