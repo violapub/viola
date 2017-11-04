@@ -13,6 +13,7 @@ export default class ToolBar extends React.Component {
     isMobilePreview: false,
     isPrintPreview: false,
     isFullscreenPreview: false,
+    sidebarHidden: false,
   };
 
   initBramble = (bramble) => {
@@ -31,15 +32,39 @@ export default class ToolBar extends React.Component {
   };
 
   updateLayout = (data) => {
-    this.filetreePaneElement.style.flexBasis = `${data.sidebarWidth}px`;
-    this.editorPaneElement.style.flexBasis = `${data.firstPaneWidth}px`;
-    this.previewPaneElement.style.flexBasis = `${data.secondPaneWidth}px`;
+    if (this.filetreePaneElement) {
+      this.filetreePaneElement.style.flexBasis = `${data.sidebarWidth}px`;
+    }
+    if (this.editorPaneElement) {
+      this.editorPaneElement.style.flexBasis = `${data.firstPaneWidth}px`;
+    }
+    if (this.previewPaneElement) {
+      this.previewPaneElement.style.flexBasis = `${data.secondPaneWidth}px`;
+    }
   };
 
   setNavFilename = (filename) => {
     this.setState(Object.assign({}, this.state, {
       filename,
     }));
+  };
+
+  onHideSidebarButtlnClick = () => {
+    if (!this.state.sidebarHidden) {
+      this.props.bramble.hideSidebar();
+      this.setState(Object.assign({}, this.state, {
+        sidebarHidden: true,
+      }));
+    }
+  };
+
+  onShowSidebarButtlnClick = () => {
+    if (this.state.sidebarHidden) {
+      this.props.bramble.showSidebar();
+      this.setState(Object.assign({}, this.state, {
+        sidebarHidden: false,
+      }));
+    }
   };
 
   onUploadButtonClick = () => {
@@ -104,7 +129,6 @@ export default class ToolBar extends React.Component {
     const targetUrl = 'http://localhost:8000/dist/vfs' + this.props.bramble.getFullPath();
     const openUrl = `http://localhost:8000/dist/print.html?render=${encodeURIComponent(targetUrl)}`;
     window.open(openUrl, 'Viola print page', 'width=800,height=600');
-    this.props.bramble.openPrintPage();
   }
 
   componentWillMount() {
@@ -112,23 +136,36 @@ export default class ToolBar extends React.Component {
   }
 
   render() {
+    const { sidebarHidden } = this.state;
+
     return (
-      <div className="ToolBar">
-        <div className="ToolBar-filetree_pane" ref={it => this.filetreePaneElement = it}>
-          <div className="ToolBar-filetree_left"></div>
-          <div className="ToolBar-filetree_right">
-            <div className="ToolBar-button" onClick={this.onUploadButtonClick}>
-              <Icon name="upload" />
+      <div className={`ToolBar ${sidebarHidden && 'sidebar-hidden'}`}>
+        {!sidebarHidden &&
+          <div className="ToolBar-filetree_pane" ref={it => this.filetreePaneElement = it}>
+            <div className="ToolBar-filetree_left">
+              <div className="ToolBar-button" onClick={this.onHideSidebarButtlnClick}>
+                <Icon name="caret-square-o-left" />
+              </div>
             </div>
-            <div className="ToolBar-button" onClick={this.onCreateNewFileButtonClick}>
-              <Icon name="plus" />
-            </div>
-            <div className="ToolBar-button" onClick={this.onCreateNewFolderButtonClick}>
-              <Icon name="folder" />
+            <div className="ToolBar-filetree_right">
+              <div className="ToolBar-button" onClick={this.onUploadButtonClick}>
+                <Icon name="upload" />
+              </div>
+              <div className="ToolBar-button" onClick={this.onCreateNewFileButtonClick}>
+                <Icon name="plus" />
+              </div>
+              <div className="ToolBar-button" onClick={this.onCreateNewFolderButtonClick}>
+                <Icon name="folder" />
+              </div>
             </div>
           </div>
-        </div>
+        }
         <div className="ToolBar-editor_pane" ref={it => this.editorPaneElement = it}>
+          {sidebarHidden &&
+            <div className="ToolBar-button" onClick={this.onShowSidebarButtlnClick}>
+              <Icon name="caret-square-o-right" />
+            </div>
+          }
           <span className="ToolBar-filename">{this.state.filename}</span>
         </div>
         <div className="ToolBar-preview_pane" ref={it => this.previewPaneElement = it}>

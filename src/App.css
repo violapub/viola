@@ -59,7 +59,7 @@
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  padding-left: 20px;
+  padding-left: 4px;
   padding-right: 14px;
   background-color: #222;
 }
@@ -77,6 +77,9 @@
   padding-right: 20px;
   background-color: #3F3F3F;
   color: #dcdcdc;
+}
+.sidebar-hidden .ToolBar-editor_pane {
+  padding-left: 4px;
 }
 
 .ToolBar-preview_pane {
@@ -97,7 +100,7 @@
   cursor: pointer;
   transition: background-color 0.1s ease-out;
   background-color: transarent;
-  color: #bbb;
+  color: #dcdcdc;
 }
 .ToolBar-button:hover {
   background-color: rgba(0, 0, 0, 0.3);
