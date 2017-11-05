@@ -1,6 +1,9 @@
 import React from 'react';
 import {Icon} from 'react-fa';
+import url from 'url';
 import './App.css';
+
+const { REACT_APP_PRINT_PAGE_HOST_URL, REACT_APP_VFS_ROOT_URL } = process.env;
 
 export default class ToolBar extends React.Component {
 
@@ -126,8 +129,12 @@ export default class ToolBar extends React.Component {
   };
 
   onOpenPrintPageButtonClick = () => {
-    const targetUrl = 'http://localhost:8000/dist/vfs' + this.props.bramble.getFullPath();
-    const openUrl = `http://localhost:8000/dist/print.html?render=${encodeURIComponent(targetUrl)}`;
+    let editingFilePath = this.props.bramble.getFullPath();
+    if (editingFilePath[0] === '/') {
+      editingFilePath = editingFilePath.slice(1);
+    }
+    const targetUrl = url.resolve(REACT_APP_VFS_ROOT_URL, editingFilePath);
+    const openUrl = `${REACT_APP_PRINT_PAGE_HOST_URL}?render=${encodeURIComponent(targetUrl)}`;
     window.open(openUrl, 'Viola print page', 'width=800,height=600');
   }
 

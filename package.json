@@ -5,7 +5,8 @@
   "dependencies": {
     "react": "^15.6.1",
     "react-dom": "^15.6.1",
-    "react-fa": "^4.2.0"
+    "react-fa": "^4.2.0",
+    "url": "^0.11.0"
   },
   "devDependencies": {
     "react-scripts": "1.0.7"

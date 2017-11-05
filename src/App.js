@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import ToolBar from './ToolBar';
 import './App.css';
 
+const { REACT_APP_BRAMBLE_HOST_URL } = process.env;
+
 const projectRoot = '/viola';
 const indexTemplate = `<!DOCTYPE html>
 <html>
@@ -82,7 +84,7 @@ class App extends Component {
 
   componentDidMount() {
     window.Bramble.load('#bramble-root', {
-      url: 'http://localhost:8000/dist/index.html',
+      url: REACT_APP_BRAMBLE_HOST_URL,
       debug: false,
       useLocationSearch: true,
     });
