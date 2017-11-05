@@ -23,6 +23,8 @@ class App extends Component {
   state = {
     bramble: null,
     modalOpen: false,
+    hideSpinner: false,
+    spinnerDisplayMode: 'flex',
   };
 
   ensureFiles = () => {
@@ -85,8 +87,9 @@ class App extends Component {
   componentDidMount() {
     window.Bramble.load('#bramble-root', {
       url: REACT_APP_BRAMBLE_HOST_URL,
-      debug: false,
-      useLocationSearch: true,
+      // debug: false,
+      // useLocationSearch: true,
+      hideUntilReady: true,
     });
 
     window.Bramble.once('error', (error) => {
@@ -95,6 +98,15 @@ class App extends Component {
 
     window.Bramble.on('ready', (bramble) => {
       this.initBramble(bramble);
+
+      this.setState(Object.assign({}, this.state, {
+        hideSpinner: true,
+      }));
+      setTimeout(() => {
+        this.setState(Object.assign({}, this.state, {
+          spinnerDisplayMode: 'none',
+        }));
+      }, 1000);
     });
 
     window.Bramble.on('readyStateChange', (previous, current) => {
@@ -107,7 +119,7 @@ class App extends Component {
   }
 
   render() {
-    const { bramble } = this.state;
+    const { bramble, hideSpinner,spinnerDisplayMode } = this.state;
 
     return (
       <div className={`App ${this.state.modalOpen? 'modal-open' : ''}`}>
@@ -118,6 +130,11 @@ class App extends Component {
           <ToolBar bramble={bramble} />
         }
         <div id="bramble-root" className="App-brambleroot"></div>
+        <div className={`App-spinner_container ${hideSpinner? 'hidden' : ''}`}
+          style={{ display: spinnerDisplayMode }}
+        >
+          <div className="App-spinner"></div>
+        </div>
       </div>
     );
   }
