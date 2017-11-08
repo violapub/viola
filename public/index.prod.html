@@ -1,3 +1,8 @@
+<%
+  // obtain bramble.xxxxxx.js path
+  const brambleJsFile = webpack.assets.map(assets => assets['name']).filter(name => name.includes('bramble'))[0];
+%>
+
 <!doctype html>
 <html lang="en">
   <head>
@@ -22,7 +27,7 @@
     <title>React App</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:400,600" rel="stylesheet">
 
-    <script src="%PUBLIC_URL%/bramble/bramble.js"></script>
+    <script src="%PUBLIC_URL%/<%= brambleJsFile %>"></script>
   </head>
   <body>
     <noscript>

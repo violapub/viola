@@ -4,6 +4,9 @@ import './App.css';
 
 const { REACT_APP_BRAMBLE_HOST_URL } = process.env;
 
+// eslint-disable-next-line
+const Bramble = window.Bramble;
+
 const projectRoot = '/viola';
 const indexTemplate = `<!DOCTYPE html>
 <html>
@@ -29,9 +32,9 @@ class App extends Component {
 
   ensureFiles = () => {
     return new Promise((resolve, reject) => {
-      const fs = window.Bramble.getFileSystem();
+      const fs = Bramble.getFileSystem();
       const sh = new fs.Shell();
-      const Path = window.Bramble.Filer.Path;
+      const Path = Bramble.Filer.Path;
       const indexPath = Path.join(projectRoot, 'index.html');
 
       function prepareIndexPage(callback) {
@@ -85,18 +88,18 @@ class App extends Component {
   };
 
   componentDidMount() {
-    window.Bramble.load('#bramble-root', {
+    Bramble.load('#bramble-root', {
       url: REACT_APP_BRAMBLE_HOST_URL,
       // debug: false,
       // useLocationSearch: true,
       hideUntilReady: true,
     });
 
-    window.Bramble.once('error', (error) => {
+    Bramble.once('error', (error) => {
       console.error('Bramble error', error);
     });
 
-    window.Bramble.on('ready', (bramble) => {
+    Bramble.on('ready', (bramble) => {
       this.initBramble(bramble);
 
       this.setState(Object.assign({}, this.state, {
@@ -109,10 +112,10 @@ class App extends Component {
       }, 1000);
     });
 
-    window.Bramble.on('readyStateChange', (previous, current) => {
-      if (current === window.Bramble.MOUNTABLE) {
+    Bramble.on('readyStateChange', (previous, current) => {
+      if (current === Bramble.MOUNTABLE) {
         this.ensureFiles().then(() => {
-          window.Bramble.mount(projectRoot);
+          Bramble.mount(projectRoot);
         });
       }
     });
