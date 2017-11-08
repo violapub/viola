@@ -10,9 +10,9 @@ const IconButton = ({
   const buttonClasses = classnames(className, 'IconButton_button');
 
   return (
-    <div {...other} className={buttonClasses}>
+    <button {...other} className={buttonClasses}>
       <Icon name={name} />
-    </div>
+    </button>
   );
 };
 

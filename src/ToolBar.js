@@ -2,6 +2,7 @@ import React from 'react';
 import {Icon} from 'react-fa';
 import url from 'url';
 import { IconButton } from './ui/Button';
+import { ContextMenu, ContextMenuItem } from './ui/ContextMenu';
 import './App.css';
 
 const { REACT_APP_PRINT_PAGE_HOST_URL, REACT_APP_VFS_ROOT_URL } = process.env;
@@ -18,6 +19,7 @@ export default class ToolBar extends React.Component {
     isPrintPreview: false,
     isFullscreenPreview: false,
     sidebarHidden: false,
+    editorOptionOpen: false,
   };
 
   initBramble = (bramble) => {
@@ -144,7 +146,7 @@ export default class ToolBar extends React.Component {
   }
 
   render() {
-    const { sidebarHidden } = this.state;
+    const { sidebarHidden, editorOptionOpen } = this.state;
 
     return (
       <div className={`ToolBar ${sidebarHidden && 'sidebar-hidden'}`}>
@@ -168,7 +170,12 @@ export default class ToolBar extends React.Component {
             <span className="ToolBar-filename">{this.state.filename}</span>
           </div>
           <div className="ToolBar-editor_right">
-            <IconButton name="cog" onClick={() => { }} />
+            <IconButton name="cog" onClick={() => { this.setState({ editorOptionOpen: !editorOptionOpen }); }} />
+            {editorOptionOpen &&
+              <ContextMenu>
+                <ContextMenuItem onClick={() => {}}>Clickable</ContextMenuItem>
+              </ContextMenu>
+            }
           </div>
         </div>
         <div className="ToolBar-preview_pane" ref={it => this.previewPaneElement = it}>

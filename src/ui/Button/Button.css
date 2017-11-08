@@ -1,12 +1,15 @@
 .IconButton_button {
-  width: 20px;
-  height: 20px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 6px;
+  /* padding: 6px; */
   margin: 0 3px;
+  font-size: 16px;
+  border: none;
+  background-color: transparent;
   cursor: pointer;
   transition: background-color 0.1s ease-out;
   background-color: transarent;
@@ -18,4 +21,7 @@
 .IconButton_button:active {
   color: #dcdcdc;
   background-color: rgba(0, 0, 0, 0.4);
+}
+.IconButton_button:focus {
+  outline: none;
 }

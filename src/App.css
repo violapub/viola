@@ -89,7 +89,6 @@
 }
 .ToolBar > * {
   box-sizing: border-box;
-  overflow: hidden;
 }
 
 .ToolBar-filetree_pane {
@@ -127,9 +126,15 @@
 
 .ToolBar-editor_left,
 .ToolBar-editor_right {
+  position: relative;
   display: inline-flex;
   flex-direction: row;
   align-items: center;
+}
+
+.ToolBar-editor_right .ContextMenu_container {
+  top: 38px;
+  left: 0px;
 }
 
 .ToolBar-preview_pane {
