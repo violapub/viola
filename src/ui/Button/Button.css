@@ -1,0 +1,21 @@
+.IconButton_button {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  margin: 0 3px;
+  cursor: pointer;
+  transition: background-color 0.1s ease-out;
+  background-color: transarent;
+  color: #dcdcdc;
+}
+.IconButton_button:hover {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+.IconButton_button:active {
+  color: #dcdcdc;
+  background-color: rgba(0, 0, 0, 0.4);
+}

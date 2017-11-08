@@ -66,7 +66,7 @@
   height: 30px;
   background-color: #222222;
   border-radius: 15%;
-  animation: spinner 1.3s cubic-bezier(0.13, 0.85, 0.43, 1.13) infinite;
+  animation: spinner 1.5s cubic-bezier(0.1, 0.03, 0.1, 1.17) infinite;
   transform: opacity;
 }
 
@@ -103,9 +103,11 @@
   background-color: #222;
 }
 
+.ToolBar-filetree_left,
 .ToolBar-filetree_right {
   display: inline-flex;
   flex-direction: row;
+  align-items: center;
 }
 
 .ToolBar-editor_pane {
@@ -113,13 +115,21 @@
   flex-direction: row;
   flex-grow: 2;
   align-items: center;
+  justify-content: space-between;
   padding-left: 20px;
-  padding-right: 20px;
+  padding-right: 14px;
   background-color: #3F3F3F;
   color: #dcdcdc;
 }
 .sidebar-hidden .ToolBar-editor_pane {
   padding-left: 4px;
+}
+
+.ToolBar-editor_left,
+.ToolBar-editor_right {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
 }
 
 .ToolBar-preview_pane {

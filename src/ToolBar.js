@@ -1,6 +1,7 @@
 import React from 'react';
 import {Icon} from 'react-fa';
 import url from 'url';
+import { IconButton } from './ui/Button';
 import './App.css';
 
 const { REACT_APP_PRINT_PAGE_HOST_URL, REACT_APP_VFS_ROOT_URL } = process.env;
@@ -150,30 +151,25 @@ export default class ToolBar extends React.Component {
         {!sidebarHidden &&
           <div className="ToolBar-filetree_pane" ref={it => this.filetreePaneElement = it}>
             <div className="ToolBar-filetree_left">
-              <div className="ToolBar-button" onClick={this.onHideSidebarButtlnClick}>
-                <Icon name="caret-square-o-left" />
-              </div>
+              <IconButton name="caret-square-o-left" onClick={this.onHideSidebarButtlnClick} />
             </div>
             <div className="ToolBar-filetree_right">
-              <div className="ToolBar-button" onClick={this.onUploadButtonClick}>
-                <Icon name="upload" />
-              </div>
-              <div className="ToolBar-button" onClick={this.onCreateNewFileButtonClick}>
-                <Icon name="plus" />
-              </div>
-              <div className="ToolBar-button" onClick={this.onCreateNewFolderButtonClick}>
-                <Icon name="folder" />
-              </div>
+              <IconButton name="upload" onClick={this.onUploadButtonClick} />
+              <IconButton name="plus" onClick={this.onCreateNewFileButtonClick} />
+              <IconButton name="folder" onClick={this.onCreateNewFolderButtonClick} />
             </div>
           </div>
         }
         <div className="ToolBar-editor_pane" ref={it => this.editorPaneElement = it}>
-          {sidebarHidden &&
-            <div className="ToolBar-button" onClick={this.onShowSidebarButtlnClick}>
-              <Icon name="caret-square-o-right" />
-            </div>
-          }
-          <span className="ToolBar-filename">{this.state.filename}</span>
+          <div className="ToolBar-editor_left">
+            {sidebarHidden &&
+              <IconButton name="caret-square-o-right" onClick={this.onShowSidebarButtlnClick} />
+            }
+            <span className="ToolBar-filename">{this.state.filename}</span>
+          </div>
+          <div className="ToolBar-editor_right">
+            <IconButton name="cog" onClick={() => { }} />
+          </div>
         </div>
         <div className="ToolBar-preview_pane" ref={it => this.previewPaneElement = it}>
           <label>
