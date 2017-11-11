@@ -1,0 +1,35 @@
+.StatusIndicator {
+  display: block;
+  width: 70px;
+}
+
+.StatusIndicator_connection-info {
+  display: flex;
+  align-items: center;
+}
+
+.StatusIndicator_connection-dot {
+  margin-right: 6px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: transparent;
+  box-shadow: none;
+}
+
+.StatusIndicator_connection-info.connected .StatusIndicator_connection-dot {
+  background-color: #00f109;
+  box-shadow: 0 0 2px 1px rgba(0, 241, 9, 0.3);
+}
+
+.StatusIndicator_connection-info.disconnected .StatusIndicator_connection-dot {
+  background-color: #fd3939;
+  box-shadow: 0 0 2px 1px rgba(253, 57, 57, 0.3);
+}
+
+.StatusIndicator_connection-message {
+  flex-grow: 1;
+  font-size: 12px;
+  line-height: 10px;
+  color: #aaa;
+}

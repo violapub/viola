@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { StatusIndicator } from './../../ui/StatusIndicator';
 import ToolBar from './../ToolBar';
 import './App.css';
 
@@ -128,9 +129,18 @@ class App extends Component {
 
     return (
       <div className={`App ${this.state.modalOpen? 'modal-open' : ''}`}>
-        <div className="App-header">
-          <div>Viola</div>
-        </div>
+        <nav className="App-header">
+          <h1 className="App-header-title">
+            Viola
+          </h1>
+          <div className="App-header-lr">
+            <div className="App-header-left">
+            </div>
+            <div className="App-header-right">
+              <StatusIndicator />
+            </div>
+          </div>
+        </nav>
         {this.state.bramble &&
           <ToolBar bramble={bramble} />
         }

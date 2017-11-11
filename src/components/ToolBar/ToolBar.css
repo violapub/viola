@@ -67,6 +67,7 @@
   padding-left: 20px;
   padding-right: 20px;
   background-color: #EAEAEA;
+  margin-left: 1px; /* fit to bramble second pane */
 }
 
 .ToolBar-button {
