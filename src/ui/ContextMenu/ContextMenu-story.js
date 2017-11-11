@@ -8,7 +8,7 @@ import { ContextMenu, ContextMenuItem, ContextMenuDivider } from './index.js';
 storiesOf('ContextMenu', module)
   .add('ContextMenu & ContextMenuItem', () => (
     <div style={{ position: 'relative' }}>
-      <ContextMenu>
+      <ContextMenu onOverlayClick={action('overlay clicked')}>
         <ContextMenuItem onClick={action('clicked')}>Clickable</ContextMenuItem>
         <ContextMenuItem>Non-clickable</ContextMenuItem>
         <ContextMenuDivider />

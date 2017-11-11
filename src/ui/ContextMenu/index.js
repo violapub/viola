@@ -3,13 +3,20 @@ import classnames from 'classnames';
 import './ContextMenu.css';
 
 const ContextMenu = ({
-  className, children,
+  className, children, onOverlayClick,
   ...other,
 }) => {
   return (
-    <ul {...other} className={classnames(className, 'ContextMenu_container')}>
-      {children}
-    </ul>
+    <div {...other} className={classnames(className, 'ContextMenu_container')}>
+      <ul className="ContextMenu_ul"
+        onClick={e => {
+          e.stopPropagation();
+        }}
+      >
+        {children}
+      </ul>
+      <div className="ContextMenu_underlay" onClick={onOverlayClick}></div>
+    </div>
   );
 };
 

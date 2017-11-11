@@ -93,6 +93,7 @@ class App extends Component {
       // debug: false,
       // useLocationSearch: true,
       hideUntilReady: true,
+      zipFilenamePrefix: 'viola-project',
     });
 
     Bramble.once('error', (error) => {

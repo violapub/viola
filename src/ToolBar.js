@@ -141,6 +141,13 @@ export default class ToolBar extends React.Component {
     window.open(openUrl, 'Viola print page', 'width=800,height=600');
   }
 
+  onExportButtonClick = () => {
+    this.setState({
+      editorOptionOpen: false,
+    });
+    this.props.bramble.export();
+  };
+
   componentWillMount() {
     this.initBramble(this.props.bramble);
   }
@@ -172,8 +179,8 @@ export default class ToolBar extends React.Component {
           <div className="ToolBar-editor_right">
             <IconButton name="cog" onClick={() => { this.setState({ editorOptionOpen: !editorOptionOpen }); }} />
             {editorOptionOpen &&
-              <ContextMenu>
-                <ContextMenuItem onClick={() => {}}>Clickable</ContextMenuItem>
+              <ContextMenu onClick={() => { this.setState({ editorOptionOpen: false }); }}>
+                <ContextMenuItem onClick={this.onExportButtonClick}>Export</ContextMenuItem>
               </ContextMenu>
             }
           </div>
