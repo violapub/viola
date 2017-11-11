@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import ToolBar from './ToolBar';
+import ToolBar from './../ToolBar';
 import './App.css';
 
 const { REACT_APP_BRAMBLE_HOST_URL } = process.env;
@@ -94,6 +94,7 @@ class App extends Component {
       // useLocationSearch: true,
       hideUntilReady: true,
       zipFilenamePrefix: 'viola-project',
+      capacity: 50 * 1000 * 1000,
     });
 
     Bramble.once('error', (error) => {

@@ -1,0 +1,77 @@
+.App {
+  text-align: center;
+}
+.App.modal-open:after {
+  content: '';
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 90px;
+  background-color: rgba(0, 0, 0, 0.7);
+  animation: showModalBackdrop 0.1s ease-out;
+}
+@keyframes showModalBackdrop {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: .8;
+  }
+}
+
+.App-header {
+  box-sizing: border-box;
+  text-align: center;
+  background-color: #222;
+  height: 40px;
+  padding: 10px;
+  color: white;
+}
+
+.App-brambleroot {
+  position: absolute;
+  top: 90px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+.App-spinner_container {
+  pointer-events: none;
+  position: fixed;
+  top: 40px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  background-color: rgba(219, 219, 219, 0.8);
+
+  opacity: 1;
+  transition: opacity 0.4s linear;
+}
+
+.App-spinner_container.hidden {
+  opacity: 0;
+}
+
+.App-spinner::before {
+  content: '';
+  display: block;
+  width: 30px;
+  height: 30px;
+  background-color: #222222;
+  border-radius: 15%;
+  animation: spinner 1.5s cubic-bezier(0.1, 0.03, 0.1, 1.17) infinite;
+  transform: opacity;
+}
+
+@keyframes spinner {
+  0%   { transform: rotate(0deg); }
+  50%  { transform: rotate(360deg); }
+  100% { transform: rotate(0deg); }
+}
