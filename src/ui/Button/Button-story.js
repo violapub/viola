@@ -3,7 +3,7 @@ import React from 'react';
 import { storiesOf } from '@storybook/react';
 import { action } from '@storybook/addon-actions';
 
-import { IconButton } from './index.js';
+import { IconButton, SelectiveRippleButton, SelectiveRippleButtonItem } from './index.js';
 
 storiesOf('Button', module)
   .add('IconButton', () => (
@@ -12,4 +12,15 @@ storiesOf('Button', module)
       <IconButton name="plus" onClick={action('clicked')} />
       <IconButton name="folder" onClick={action('clicked')} />
     </div>
+  ))
+  .add('SelectiveRippleButton', () => (
+    <SelectiveRippleButton
+      data={[
+        { name: 'mobile' },
+        { name: 'desktop' },
+        { name: 'print' },
+      ]}
+      initialActive={0}
+      onChange={action('clicked')}
+    />
   ));

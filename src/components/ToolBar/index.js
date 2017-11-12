@@ -2,7 +2,7 @@ import React from 'react';
 import {Icon} from 'react-fa';
 import url from 'url';
 import classnames from 'classnames';
-import { IconButton } from './../../ui/Button';
+import { IconButton, SelectiveRippleButton } from './../../ui/Button';
 import { ContextMenu, ContextMenuItem } from './../../ui/ContextMenu';
 import './ToolBar.css';
 
@@ -12,13 +12,13 @@ export default class ToolBar extends React.Component {
 
   props: {
     bramble: any,
+    fullscreenEnabled: boolean,
+    onFullscreenStatusChanged: (enabled: boolean) => void,
   };
 
   state = {
     filename: '',
-    isMobilePreview: false,
-    isPrintPreview: false,
-    isFullscreenPreview: false,
+    previewMode: 'desktop',
     sidebarHidden: false,
     editorOptionOpen: false,
   };
@@ -89,6 +89,27 @@ export default class ToolBar extends React.Component {
     this.props.bramble.addNewFolder();
   };
 
+  onMobilePreviewButtonClick = () => {
+    if (this.state.previewMode !== 'mobile') {
+      this.props.bramble.useMobilePreview();
+      this.setState({ previewMode: 'mobile' });
+    }
+  };
+
+  onDesktopPreviewButtonClick = () => {
+    if (this.state.previewMode !== 'desktop') {
+      this.props.bramble.useDesktopPreview();
+      this.setState({ previewMode: 'desktop' });
+    }
+  };
+
+  onPrintPreviewButtonClick = () => {
+    if (this.state.previewMode !== 'print') {
+      this.props.bramble.usePrintPreview();
+      this.setState({ previewMode: 'print' });
+    }
+  };
+
   onMobileCheckboxChange = () => {
     if (this.state.isMobilePreview) {
       this.props.bramble.useDesktopPreview();
@@ -120,16 +141,14 @@ export default class ToolBar extends React.Component {
   };
 
   onFullscreenButtonClick = () => {
-    if (this.state.isFullscreenPreview) {
+    if (this.props.fullscreenEnabled) {
       this.props.bramble.disableFullscreenPreview();
     }
     else {
       this.props.bramble.enableFullscreenPreview();
     }
 
-    this.setState(Object.assign({}, this.state, {
-      isFullscreenPreview: !this.state.isFullscreenPreview,
-    }));
+    this.props.onFullscreenStatusChanged(!this.props.fullscreenEnabled);
   };
 
   onOpenPrintPageButtonClick = () => {
@@ -181,31 +200,31 @@ export default class ToolBar extends React.Component {
             <IconButton name="cog" onClick={() => { this.setState({ editorOptionOpen: !editorOptionOpen }); }} />
             {editorOptionOpen &&
               <ContextMenu onClick={() => { this.setState({ editorOptionOpen: false }); }}>
+                <ContextMenuItem onClick={this.onOpenPrintPageButtonClick}>Open print page</ContextMenuItem>
                 <ContextMenuItem onClick={this.onExportButtonClick}>Export</ContextMenuItem>
               </ContextMenu>
             }
           </div>
         </div>
         <div className="ToolBar-preview_pane" ref={it => this.previewPaneElement = it}>
-          <label>
-            <input type="checkbox" checked={this.state.isMobilePreview}
-              disabled={this.state.isPrintPreview}
-              onChange={this.onMobileCheckboxChange}
+          <div className="ToolBar-preview_left">
+            <SelectiveRippleButton initialActiveIndex={1}
+              data={[
+                { name: 'mobile', onClick: this.onMobilePreviewButtonClick },
+                { name: 'desktop', onClick: this.onDesktopPreviewButtonClick },
+                { name: 'print', onClick: this.onPrintPreviewButtonClick },
+              ]}
             />
-            Mobile preview
-          </label>
-          <label>
-            <input type="checkbox" checked={this.state.isPrintPreview}
-              onChange={this.onPrintCheckboxChange}
-            />
-            Print preview
-          </label>
-          <button onClick={this.onFullscreenButtonClick}>
-            fullscreen
-          </button>
-          <button onClick={this.onOpenPrintPageButtonClick}>
-            openPrintPage
-          </button>
+          </div>
+          <div className="ToolBar-preview_right">
+            <IconButton black name="expand" onClick={this.onFullscreenButtonClick} />
+            {this.props.fullscreenEnabled &&
+              <IconButton opaque name="compress"
+                className="ToolBar-disable_fullscreen_button"
+                onClick={this.onFullscreenButtonClick}
+              />
+            }
+          </div>
         </div>
       </div>
     );

@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import classnames from 'classnames';
 import { StatusIndicator } from './../../ui/StatusIndicator';
 import ToolBar from './../ToolBar';
 import './App.css';
@@ -29,6 +30,7 @@ class App extends Component {
     modalOpen: false,
     hideSpinner: false,
     spinnerDisplayMode: 'flex',
+    fullscreenEnabled: false,
   };
 
   ensureFiles = () => {
@@ -88,6 +90,10 @@ class App extends Component {
     }));
   };
 
+  onFullscreenStatusChanged = (fullscreenEnabled) => {
+    this.setState({ fullscreenEnabled });
+  };
+
   componentDidMount() {
     Bramble.load('#bramble-root', {
       url: REACT_APP_BRAMBLE_HOST_URL,
@@ -125,10 +131,14 @@ class App extends Component {
   }
 
   render() {
-    const { bramble, hideSpinner,spinnerDisplayMode } = this.state;
+    const { bramble, hideSpinner, spinnerDisplayMode, fullscreenEnabled } = this.state;
+    const appClasses = classnames('App', {
+      'modal-open': this.state.modalOpen,
+      'fullscreen': this.state.fullscreenEnabled,
+    });
 
     return (
-      <div className={`App ${this.state.modalOpen? 'modal-open' : ''}`}>
+      <div className={appClasses}>
         <nav className="App-header">
           <h1 className="App-header-title">
             Viola
@@ -142,7 +152,10 @@ class App extends Component {
           </div>
         </nav>
         {this.state.bramble &&
-          <ToolBar bramble={bramble} />
+          <ToolBar bramble={bramble}
+            fullscreenEnabled={fullscreenEnabled}
+            onFullscreenStatusChanged={this.onFullscreenStatusChanged}
+          />
         }
         <div id="bramble-root" className="App-brambleroot"></div>
         <div className={`App-spinner_container ${hideSpinner? 'hidden' : ''}`}

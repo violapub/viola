@@ -64,27 +64,24 @@
   flex-direction: row;
   flex-grow: 3;
   align-items: center;
+  justify-content: space-between;
   padding-left: 20px;
   padding-right: 20px;
   background-color: #EAEAEA;
   margin-left: 1px; /* fit to bramble second pane */
 }
 
-.ToolBar-button {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  padding: 6px;
-  margin: 0 3px;
-  cursor: pointer;
-  transition: background-color 0.1s ease-out;
-  background-color: transarent;
-  color: #dcdcdc;
+.ToolBar-preview_left,
+.ToolBar-preview_right {
+  position: relative;
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
 }
-.ToolBar-button:hover {
-  background-color: rgba(0, 0, 0, 0.3);
-}
-.ToolBar-button:active {
-  color: #dcdcdc;
-  background-color: rgba(0, 0, 0, 0.4);
+
+.ToolBar-disable_fullscreen_button {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10000;
 }

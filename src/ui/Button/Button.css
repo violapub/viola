@@ -1,11 +1,11 @@
 .IconButton_button {
+  position: relative;
   width: 32px;
   height: 32px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  /* padding: 6px; */
   margin: 0 3px;
   font-size: 16px;
   border: none;
@@ -15,13 +15,77 @@
   background-color: transarent;
   color: #dcdcdc;
 }
-.IconButton_button:hover {
+.IconButton_button:hover,
+.IconButton_button:active {
   background-color: rgba(0, 0, 0, 0.3);
 }
-.IconButton_button:active {
-  color: #dcdcdc;
-  background-color: rgba(0, 0, 0, 0.4);
-}
 .IconButton_button:focus {
+  outline: none;
+}
+.IconButton_button::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  left: -4px;
+  right: -4px;
+}
+
+.IconButton_button.black {
+  color: #848484;
+}
+.IconButton_button.black:hover,
+.IconButton_button.black:active {
+  background-color: rgba(160, 160, 160, 0.3);
+}
+
+.IconButton_button.opaque {
+  color: #ffffff;
+  background-color: rgba(0, 0, 0, 0.45);
+}
+.IconButton_button.opaque:hover,
+.IconButton_button.opaque:active {
+  background-color: rgba(0, 0, 0, 0.9);
+}
+
+.SelectiveRippleButton {
+  position: relative;
+  height: 38px;
+  background: #cccccc;
+  border-radius: 21px;
+}
+
+.SelectiveRippleButton_paper {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background-color: #fafafa;
+  box-shadow: 0px 1px 4px 2px rgba(148, 148, 148, 0.5);
+  transition: transform .2s ease;
+  pointer-events: none;
+}
+
+.SelectiveRippleButton_item {
+  position: relative;
+  display: inline-flex;
+  width: 38px;
+  height: 38px;
+  align-items: center;
+  justify-content: center;
+  color: #7c7c7c;
+  cursor: pointer;
+}
+
+.SelectiveRippleButton_item.active,
+.SelectiveRippleButton_item:hover,
+.SelectiveRippleButton_item:active {
+  color: #444444;
+}
+
+.SelectiveRippleButton_item:focus {
   outline: none;
 }

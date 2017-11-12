@@ -13,6 +13,7 @@
   padding: 6px 0;
   list-style: none;
   width: max-content;
+  min-width: 160px;
   background-color: black;
   color: #dddddd;
   border-radius: 2px;
