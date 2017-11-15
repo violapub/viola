@@ -59,6 +59,6 @@
 .ContextMenuDivider_divider {
   border: none;
   height: 1px;
-  background-color: rgba(160, 160, 160, 0.3);
+  background-color: rgba(0, 0, 0, 0.08);
   margin: 5px 0;
 }

@@ -30,6 +30,7 @@ class App extends Component {
     bramble: null,
     modalOpen: false,
     hideSpinner: false,
+    fontLoaded: false,
     spinnerDisplayMode: 'flex',
     fullscreenEnabled: false,
   };
@@ -96,6 +97,19 @@ class App extends Component {
   };
 
   componentDidMount() {
+    if (window.document.fonts) {
+      window.document.fonts.ready.then(fontFaceSet => {
+        this.setState({
+          fontLoaded: true,
+        });
+      });
+    }
+    else {
+      this.setState({
+        fontLoaded: true,
+      });
+    }
+
     Bramble.load('#bramble-root', {
       url: REACT_APP_BRAMBLE_HOST_URL,
       // debug: false,
@@ -132,7 +146,7 @@ class App extends Component {
   }
 
   render() {
-    const { bramble, hideSpinner, spinnerDisplayMode, fullscreenEnabled } = this.state;
+    const { bramble, hideSpinner, fontLoaded, spinnerDisplayMode, fullscreenEnabled } = this.state;
     const appClasses = classnames('App', {
       'modal-open': this.state.modalOpen,
       'fullscreen': this.state.fullscreenEnabled,
@@ -159,10 +173,13 @@ class App extends Component {
           />
         }
         <div id="bramble-root" className="App-brambleroot"></div>
-        <div className={`App-spinner_container ${hideSpinner? 'hidden' : ''}`}
+        <div className={`App-loading_container ${hideSpinner? 'hidden' : ''}`}
           style={{ display: spinnerDisplayMode }}
         >
-          <div className="App-spinner"></div>
+          {fontLoaded &&
+            <ViolaLogo black className="App-loading_logo" />
+          }
+          <div className="App-loading_message">Starting<br/>Viola</div>
         </div>
       </div>
     );
