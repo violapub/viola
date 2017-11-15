@@ -24,14 +24,27 @@
   background-color: #222;
   height: 40px;
   padding: 0;
-  color: white;
+  color: #dcdcdc;
 }
 
 .App-header-title {
-  text-align: center;
+  height: 100%;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.App-header-title-logo {
+  margin: 0 12px;
+  height: 24px;
+}
+
+.App-header-title h1 {
+  display: inline;
   margin: 0;
   line-height: 40px;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 400;
 }
 

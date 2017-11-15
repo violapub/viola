@@ -150,6 +150,7 @@ module.exports = {
           /\.gif$/,
           /\.jpe?g$/,
           /\.png$/,
+          new RegExp(`${paths.appSrc}.+\\.svg`),
         ],
         loader: require.resolve('file-loader'),
         options: {
@@ -224,6 +225,17 @@ module.exports = {
           )
         ),
         // Note: this won't work without `new ExtractTextPlugin()` in `plugins`.
+      },
+      {
+        test: new RegExp(`${paths.appSrc}.+\\.svg`),
+        use: [
+          {
+            loader: require.resolve('babel-loader'),
+          },
+          {
+            loader: require.resolve('react-svg-loader'),
+          },
+        ],
       },
       // ** STOP ** Are you adding a new loader?
       // Remember to add the new extension(s) to the "file" loader exclusion list.

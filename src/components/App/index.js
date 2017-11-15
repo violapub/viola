@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import classnames from 'classnames';
+import { ViolaLogo } from './../../ui/Logo';
 import { StatusIndicator } from './../../ui/StatusIndicator';
 import ToolBar from './../ToolBar';
 import './App.css';
@@ -140,9 +141,9 @@ class App extends Component {
     return (
       <div className={appClasses}>
         <nav className="App-header">
-          <h1 className="App-header-title">
-            Viola
-          </h1>
+          <div className="App-header-title">
+            <ViolaLogo white className="App-header-title-logo" />
+          </div>
           <div className="App-header-lr">
             <div className="App-header-left">
             </div>

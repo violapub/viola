@@ -1,0 +1,14 @@
+.ViolaLogo {
+  display: inline-block;
+  height: 100%;
+}
+.ViolaLogo.white {
+  fill: #dcdcdc;
+}
+.ViolaLogo.black {
+  fill: #222222;
+}
+
+.ViolaLogo_svg {
+  height: 100%;
+}
