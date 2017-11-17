@@ -10,6 +10,9 @@
     "url": "^0.11.0"
   },
   "devDependencies": {
+    "@storybook/addon-actions": "^3.2.14",
+    "@storybook/addon-links": "^3.2.14",
+    "@storybook/react": "^3.2.14",
     "autoprefixer": "7.1.0",
     "babel-core": "6.24.1",
     "babel-eslint": "7.2.3",
@@ -40,23 +43,25 @@
     "react-dev-utils": "^3.0.0",
     "react-error-overlay": "^1.0.7",
     "react-svg-loader": "^2.1.0",
+    "serve": "^6.4.1",
     "style-loader": "0.17.0",
     "sw-precache-webpack-plugin": "0.9.1",
     "url-loader": "0.5.8",
     "webpack": "2.6.1",
     "webpack-dev-server": "2.4.5",
     "webpack-manifest-plugin": "1.1.0",
-    "whatwg-fetch": "2.0.3",
-    "@storybook/react": "^3.2.14",
-    "@storybook/addon-actions": "^3.2.14",
-    "@storybook/addon-links": "^3.2.14"
+    "whatwg-fetch": "2.0.3"
   },
   "scripts": {
+    "postinstall": "npm run bramble:install",
     "start": "node scripts/start.js",
     "build": "node scripts/build.js",
     "test": "node scripts/test.js --env=jsdom",
     "storybook": "start-storybook -p 6006",
-    "build-storybook": "build-storybook"
+    "build-storybook": "build-storybook",
+    "bramble:install": "cd brackets && npm install",
+    "bramble:build": "cd brackets && grunt build-browser swPrecache && npm run localize",
+    "bramble:build-dev": "cd brackets && grunt build-browser-dev"
   },
   "jest": {
     "collectCoverageFrom": [

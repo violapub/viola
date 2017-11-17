@@ -43,7 +43,7 @@ module.exports = {
   dotenv: resolveApp('.env'),
   appBuild: resolveApp('build'),
   appPublic: resolveApp('public'),
-  appHtml: resolveApp('public/index.html'),
+  appDevHtml: resolveApp('public/index.dev.html'),
   appProdHtml: resolveApp('public/index.prod.html'),
   appIndexJs: resolveApp('src/index.js'),
   appPackageJson: resolveApp('package.json'),
@@ -53,5 +53,6 @@ module.exports = {
   appNodeModules: resolveApp('node_modules'),
   publicUrl: getPublicUrl(resolveApp('package.json')),
   servedPath: getServedPath(resolveApp('package.json')),
+  brambleDist: resolveApp('brackets/dist'),
   brambleJs: resolveApp('brackets/dist/bramble.js'),
 };
