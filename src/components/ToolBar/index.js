@@ -200,8 +200,8 @@ export default class ToolBar extends React.Component {
             <IconButton name="cog" onClick={() => { this.setState({ editorOptionOpen: !editorOptionOpen }); }} />
             {editorOptionOpen &&
               <ContextMenu onClick={() => { this.setState({ editorOptionOpen: false }); }}>
-                <ContextMenuItem onClick={this.onOpenPrintPageButtonClick}>Open print page</ContextMenuItem>
-                <ContextMenuItem onClick={this.onExportButtonClick}>Export</ContextMenuItem>
+                <ContextMenuItem onClick={this.onOpenPrintPageButtonClick}>印刷ページを開く</ContextMenuItem>
+                <ContextMenuItem onClick={this.onExportButtonClick}>プロジェクトをダウンロード</ContextMenuItem>
               </ContextMenu>
             }
           </div>
