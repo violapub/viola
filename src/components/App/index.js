@@ -5,12 +5,17 @@ import { StatusIndicator } from './../../ui/StatusIndicator';
 import ToolBar from './../ToolBar';
 import './App.css';
 
-const { REACT_APP_BRAMBLE_HOST_URL } = process.env;
+const { REACT_APP_BRAMBLE_HOST_URL, REACT_APP_VERSION } = process.env;
 
 // eslint-disable-next-line
 const Bramble = window.Bramble;
 
-const projectRoot = '/viola';
+let projectRoot = '/viola';
+// Use beta subdirectory
+if (REACT_APP_VERSION.split('.')[0] === '0') {
+  projectRoot += '/beta';
+}
+
 const indexTemplate = `<!DOCTYPE html>
 <html>
   <head>
