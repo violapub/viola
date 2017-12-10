@@ -1,5 +1,4 @@
 import React from 'react';
-import {Icon} from 'react-fa';
 import url from 'url';
 import classnames from 'classnames';
 import { IconButton, SelectiveRippleButton } from './../../ui/Button';

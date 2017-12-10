@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import classnames from 'classnames';
+import Project from './../../misc/project';
 import { ViolaLogo } from './../../ui/Logo';
 import { StatusIndicator } from './../../ui/StatusIndicator';
 import ToolBar from './../ToolBar';
@@ -16,19 +17,6 @@ if (REACT_APP_VERSION.split('.')[0] === '0') {
   projectRoot += '/beta';
 }
 
-const indexTemplate = `<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <title>Viola index page</title>
-  </head>
-  <body>
-    <h2>Welcome to Viola</h2>
-    <p>Write your awesome story.</p>
-  </body>
-</html>
-`;
-
 class App extends Component {
 
   state = {
@@ -40,44 +28,16 @@ class App extends Component {
     fullscreenEnabled: false,
   };
 
-  ensureFiles = () => {
-    return new Promise((resolve, reject) => {
-      const fs = Bramble.getFileSystem();
-      const sh = new fs.Shell();
-      const Path = Bramble.Filer.Path;
-      const indexPath = Path.join(projectRoot, 'index.html');
+  downloadProject = async () => {
+    const fs = Bramble.getFileSystem();
+    const sh = new fs.Shell();
+    const path = Bramble.Filer.Path;
+    const FilerBuffer = Bramble.Filer.Buffer;
+    const { projectMeta } = this.props.data;
+    const project = new Project({ path, fs, sh, FilerBuffer, projectMeta, projectRoot });
 
-      function prepareIndexPage(callback) {
-        fs.exists(indexPath, (exists) => {
-          if (exists) {
-            callback();
-          }
-          else {
-            fs.writeFile(indexPath, indexTemplate, (err) => {
-              if (err) throw err;
-              callback();
-            });
-          }
-        });
-      }
-
-      try {
-        fs.exists(projectRoot, (exists) => {
-          if (exists) {
-            prepareIndexPage(resolve);
-          }
-          else {
-            sh.mkdirp(projectRoot, (err) => {
-              if (err) throw err;
-              prepareIndexPage(resolve);
-            });
-          }
-        });
-      } catch (e) {
-        reject(e);
-      }
-    });
-  }
+    await project.initialize();
+  };
 
   initBramble = (bramble) => {
     bramble.showSidebar();
@@ -143,7 +103,7 @@ class App extends Component {
 
     Bramble.on('readyStateChange', (previous, current) => {
       if (current === Bramble.MOUNTABLE) {
-        this.ensureFiles().then(() => {
+        this.downloadProject().then(() => {
           Bramble.mount(projectRoot);
         });
       }

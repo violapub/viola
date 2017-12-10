@@ -1,0 +1,187 @@
+/* @font-faceはフォントデータについて指定する特別なルールです */
+@font-face {
+  /* font-familyを設定すると、今後その名前でフォントを呼び出すことができます */
+  font-family: SourceHanSerifJP;
+  font-weight: normal;
+  /* srcでフォントファイルの場所を指定します */
+  src: url('fonts/SourceHanSerifJP/SourceHanSerifJP-Medium.woff') format('woff');
+}
+
+/* CSSはスタイルを指定したいタグと、スタイルの内容のセットで構成されています。
+ * 以下の例では、<body>タグのスタイルについて設定しています。
+ */
+body {
+  margin: 50px auto;
+  padding: 0 40px;
+  max-width: 660px;
+
+  font-size: 16px;
+  font-family: SourceHanSerifJP, serif;
+  /* font-feature-settingsはフォント独自の機能を指定します。
+   * 'palt'でプロポーショナルメトリクス（文字詰め）を有効にします。
+   */
+  font-feature-settings: 'palt';
+  letter-spacing: 0.02em;
+  line-height: 1.7;
+  /* word-breakは英単語の改行ルールを指定します */
+  word-break: normal;
+  /* line-breakは日本語文章の改行ルールを指定します */
+  line-break: strict;
+  /* overflow-wrapは1つの単語が領域からはみ出した時の動作を指定します */
+  overflow-wrap: break-word;
+}
+
+p {
+  margin: 24px 0;
+  /* text-indentは行頭の空白のサイズを設定します */
+  text-indent: 1em;
+}
+
+h1, h2, h3, h4, h5 {
+  /* break-before（break-after）はタグの直前（直後）の
+   * 改ページのルールを指定します。
+   * 以下の例では、タグの直後に新しいページが始まらないように指定しています。
+   */
+  break-after: avoid;
+}
+
+article {
+  page-break-before: always;
+  page-break-after: always;
+}
+
+code {
+  margin: 0 0.2em;
+  padding: 0.2em 0.4em;
+  background-color: #ebe9e5;
+  border-radius: 0.2em;
+}
+
+figure img {
+  display: block;
+  margin: 10px auto;
+  max-width: 100%;
+  border-radius: 3px;
+  box-shadow: 0px 4px 8px 2px rgba(0, 0, 0, 0.2);
+}
+
+tr, th, td {
+  /* break-insideはタグ途中の改ページのルールを指定します。
+   * 以下の例では、タグの途中で新しいページが始まらないように指定しています。
+   */
+  break-inside: avoid;
+}
+
+hr {
+  border: none;
+  text-align: center;
+}
+hr::before {
+  content: '';
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: black;
+}
+
+.top {
+  font-size: 160%;
+}
+.logo {
+  margin-right: 16px;
+}
+
+body {
+  /* counter-resetで新しいカウンタを追加します。
+   * カウンタは特定の要素が出現するたびに値を追加することができます。
+   */
+  counter-reset: section;
+}
+
+article {
+  /* counter-incrementでカウンタを1追加します。
+   * この設定で、<article>タグが出現するたびに
+   * sectionカウンタが1追加されます。
+   */
+  counter-increment: section;
+  counter-reset: fig footnote;
+}
+h1::before {
+  /* counter(section)とすることで、その地点での
+   * sectionカウンタの値を表示させます。
+   */
+  content: counter(section) '. ';
+}
+
+/* @mediaルールは特定の環境でのみ適用されるルールです。
+ * printを指定すると印刷時にのみ適用され、
+ * screenを指定すると画面表示時のみ適用されます。
+ */
+@media print {
+  body {
+    font-size: 14px;
+
+    /* widows, orhpansは改ページで文章が分断された時に
+     * 先頭（末尾）の行を最低何行確保するかを指定します。
+     */
+    widows: 3;
+    orphans: 3;
+
+    /* hyphensは単語途中での行の折り返しルールを指定します */
+    hyphens: auto;
+  }
+}
+
+@media print {
+  figure {
+    width: 70%;
+    /* block-endでページ下にレイアウトされます。
+     * 参考: https://www.w3.org/TR/css-page-floats-3/
+     */
+    float: block-end;
+    float-reference: page;
+  }
+  #colophon {
+    margin-top: 8rem;
+  }
+}
+
+/* @pageは印刷ページについて指定する特別なルールです */
+@page {
+  /* sizeは印刷するページの大きさを指定します。
+   * 下のような幅と高さの指定以外にも、A4やJIS-B5などが指定できます。
+   */
+  size: 182mm 257mm;
+
+  /* @bottom-leftはページの左下の疑似要素について指定する特別なルールです。
+   * これ以外にも、@top-centerなどが指定できます。
+   * 参考: https://www.w3.org/TR/css3-page/#margin-boxes
+   */
+  @bottom-left {
+    /* contentでページの左下に追加するテキストを指定します。
+     * counter(page)とすると、そのページのページ番号が指定できます。
+     * contentは必ず指定する必要があるので、
+     * 何も表示させない場合は空文字（''）を指定してください。
+     */
+    content: counter(page);
+    font-size: 12px;
+    font-family: SourceHanSerifJP, serif;
+  }
+
+  @bottom-right {
+    content: 'Viola チュートリアル';
+    font-size: 12px;
+    font-family: SourceHanSerifJP, serif;
+  }
+}
+
+/* @pageに:rightや:leftセレクタを追加すると
+ * 右側（左側）のページだけに適用できます。
+ */
+@page :right {
+  margin: 17mm 15mm 23mm 20mm;
+}
+@page :left {
+  margin: 17mm 20mm 23mm 15mm;
+}

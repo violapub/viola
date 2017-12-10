@@ -4,5 +4,15 @@ import App from './components/App';
 import registerServiceWorker from './registerServiceWorker';
 import './index.css';
 
-ReactDOM.render(<App />, document.getElementById('root'));
+const dataDOM = document.getElementById('viola-data');
+let data = {};
+if (dataDOM && dataDOM.dataset['json']) {
+  try {
+    data = JSON.parse(decodeURIComponent(dataDOM.dataset['json']));
+  } catch (e) {
+    // do nothing
+  }
+}
+
+ReactDOM.render(<App data={data} />, document.getElementById('root'));
 registerServiceWorker();
