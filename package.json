@@ -2,6 +2,9 @@
   "name": "viola",
   "version": "0.1.0",
   "private": true,
+  "repository": "https://github.com/pentapod/viola.git",
+  "author": "spring_raining <harusamex.com@gmail.com>",
+  "license": "AGPL-3.0",
   "dependencies": {
     "classnames": "^2.2.5",
     "react": "^15.6.1",
