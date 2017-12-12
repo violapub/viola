@@ -1,19 +1,21 @@
+defaults: &defaults
+  working_directory: ~/viola
+  docker:
+    - image: circleci/node:8
+
 version: 2
 jobs:
-  build:
-    docker:
-      - image: circleci/node:8
-
-    working_directory: ~/viola
-
+  ###
+  ### checkout
+  ###
+  checkout:
+    <<: *defaults
     steps:
       - checkout
       - run: git submodule update --init --recursive
-
       - restore_cache:
           keys:
             - viola-v1-dependencies-{{ checksum "package.json" }}
-            # fallback to using the latest cache if no exact match is found
             - viola-v1-dependencies-
       - restore_cache:
           keys:
@@ -37,12 +39,112 @@ jobs:
           key: bramble-src-v1-dependencies-{{ checksum "brackets/src/package.json" }}
           paths:
             - brackets/src/node_modules
+      - persist_to_workspace:
+          root: .
+          paths:
+            - '*'
 
+  ###
+  ### build-bramble
+  ###
+  build-bramble:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: .
       - run: npm run bramble:build
-      - run: npm build
+      - persist_to_workspace:
+          root: .
+          paths:
+            - brackets/dist/*
+
+  ###
+  ### build-viola-stage
+  ###
+  build-viola-stage:
+    <<: *defaults
+    environment:
+      - REACT_APP_BRAMBLE_HOST_URL: https://editor.draft.viola.pub/index.html?locale=ja
+      - REACT_APP_PRINT_PAGE_HOST_URL: https://editor.draft.viola.pub/thirdparty/viola-savepdf/index.html
+      - REACT_APP_VFS_ROOT_URL: https://editor.draft.viola.pub/vfs/
+      - REACT_APP_VIOLA_HOMEPAGE: https://viola.pub
+
+    steps:
+      - attach_workspace:
+          at: .
+      - run: npm run build
+      - persist_to_workspace:
+          root: .
+          paths:
+            - build/*
+
+  ###
+  ### build-viola-prod
+  ###
+  build-viola-prod:
+    <<: *defaults
+    environment:
+      - REACT_APP_BRAMBLE_HOST_URL: https://editor.viola.pub/index.html?locale=ja
+      - REACT_APP_PRINT_PAGE_HOST_URL: https://editor.viola.pub/thirdparty/viola-savepdf/index.html
+      - REACT_APP_VFS_ROOT_URL: https://editor.viola.pub/vfs/
+      - REACT_APP_VIOLA_HOMEPAGE: https://viola.pub
+
+    steps:
+      - attach_workspace:
+          at: .
+      - run: npm run build
+      - persist_to_workspace:
+          root: .
+          paths:
+            - build/*
+
+  ###
+  ### deploy-stage
+  ###
+  deploy-stage:
+    <<: *defaults
+    docker:
+      - image: xueshanf/awscli
+
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          name: Deploy viola app to staging
+          command: aws s3 sync --delete build s3://writing.viola.pub/stage
+      - run:
+          name: Deploy bramble app to staging
+          command: aws s3 sync --delete brackets/dist s3://editor.viola.pub/stage
+
+  ###
+  ### deploy-prod
+  ###
+  deploy-prod:
+    <<: *defaults
+    docker:
+      - image: xueshanf/awscli
+
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          name: Deploy viola app to production
+          command: aws s3 sync --delete build s3://writing.viola.pub/prod
+      - run:
+          name: Deploy bramble app to production
+          command: aws s3 sync --delete brackets/dist s3://editor.viola.pub/prod
 
 workflows:
   version: 2
-  build:
+  build-deploy:
     jobs:
-      - build
+      - checkout
+      - build-bramble:
+          requires:
+            - checkout
+      - build-viola-stage:
+          requires:
+            - build-bramble
+      - deploy-stage:
+          requires:
+            - build-viola-stage
