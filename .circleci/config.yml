@@ -139,7 +139,7 @@ workflows:
   build-deploy:
     jobs:
     # staging
-      - checkout
+      - checkout:
           filters:
             branches:
               only: master
