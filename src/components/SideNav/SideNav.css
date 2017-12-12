@@ -1,0 +1,31 @@
+.SideNav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  height: 34px;
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+}
+.fullscreen .SideNav,
+.sidebar-hidden .SideNav,
+.modal-open .SideNav {
+  display: none;
+}
+
+.SideNav-item {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 0.8em 8px;
+  color: rgba(255,255,255,0.4);
+  font-size: 13px;
+}
+a.SideNav-item,
+a.SideNav-item:visited {
+  color: #dcdcdc;
+  text-decoration: none;
+}
+a.SideNav-item:hover {
+  color: #ffffff;
+  text-decoration: underline;
+}

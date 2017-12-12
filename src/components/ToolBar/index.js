@@ -11,13 +11,14 @@ export default class ToolBar extends React.Component {
   props: {
     bramble: any,
     fullscreenEnabled: boolean,
+    sidebarHidden: boolean,
     onFullscreenStatusChanged: (enabled: boolean) => void,
+    onSidebarVisibilityChanged: (hidden: boolean) => void,
   };
 
   state = {
     filename: '',
     previewMode: 'desktop',
-    sidebarHidden: false,
     editorOptionOpen: false,
   };
 
@@ -55,21 +56,13 @@ export default class ToolBar extends React.Component {
   };
 
   onHideSidebarButtlnClick = () => {
-    if (!this.state.sidebarHidden) {
-      this.props.bramble.hideSidebar();
-      this.setState(Object.assign({}, this.state, {
-        sidebarHidden: true,
-      }));
-    }
+    this.props.bramble.hideSidebar();
+    this.props.onSidebarVisibilityChanged(true);
   };
 
   onShowSidebarButtlnClick = () => {
-    if (this.state.sidebarHidden) {
-      this.props.bramble.showSidebar();
-      this.setState(Object.assign({}, this.state, {
-        sidebarHidden: false,
-      }));
-    }
+    this.props.bramble.showSidebar();
+    this.props.onSidebarVisibilityChanged(false);
   };
 
   onUploadButtonClick = () => {
@@ -77,9 +70,6 @@ export default class ToolBar extends React.Component {
   };
 
   onCreateNewFileButtonClick = () => {
-    // this.props.bramble.addNewFile({
-    //   contents: '',
-    // });
     this.props.bramble.createNewFile();
   };
 
@@ -179,7 +169,8 @@ export default class ToolBar extends React.Component {
   }
 
   render() {
-    const { sidebarHidden, editorOptionOpen } = this.state;
+    const { sidebarHidden } = this.props;
+    const { editorOptionOpen } = this.state;
 
     return (
       <div className={classnames('ToolBar', { 'sidebar-hidden': sidebarHidden })}>
