@@ -30,7 +30,7 @@ export default class SideNav extends React.Component {
         ref={it => this.sideNavElement = it}
       >
         <div className="SideNav-item">{'v' + REACT_APP_VERSION}</div>
-        <a className="SideNav-item" href={REACT_APP_VIOLA_REPOSITORY} target="_blank">
+        <a className="SideNav-item" href={REACT_APP_VIOLA_REPOSITORY} target="_blank" rel="noopener noreferrer">
           Source
         </a>
       </nav>
