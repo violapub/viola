@@ -8,8 +8,7 @@ jobs:
 
     steps:
       - checkout
-      - run: git submodule sync
-      - run: git submodule update --init
+      - run: git submodule update --init --recursive
 
       - restore_cache:
           keys:
