@@ -3,6 +3,7 @@ import classnames from 'classnames';
 import Project from './../../misc/project';
 import { ViolaLogo } from './../../ui/Logo';
 import { StatusIndicator } from './../../ui/StatusIndicator';
+import SideNav from './../SideNav';
 import ToolBar from './../ToolBar';
 import './App.css';
 
@@ -30,6 +31,7 @@ class App extends Component {
     fontLoaded: false,
     spinnerDisplayMode: 'flex',
     fullscreenEnabled: false,
+    sidebarHidden: false,
   };
 
   downloadProject = async () => {
@@ -65,6 +67,10 @@ class App extends Component {
   onFullscreenStatusChanged = (fullscreenEnabled) => {
     this.setState({ fullscreenEnabled });
   };
+
+  onSidebarVisibilityChanged = (sidebarHidden) => {
+    this.setState({ sidebarHidden });
+  }
 
   componentDidMount() {
     if (window.document.fonts) {
@@ -116,10 +122,19 @@ class App extends Component {
   }
 
   render() {
-    const { bramble, hideSpinner, fontLoaded, spinnerDisplayMode, fullscreenEnabled } = this.state;
+    const {
+      bramble,
+      modalOpen,
+      hideSpinner,
+      fontLoaded,
+      spinnerDisplayMode,
+      fullscreenEnabled,
+      sidebarHidden,
+    } = this.state;
     const appClasses = classnames('App', {
-      'modal-open': this.state.modalOpen,
-      'fullscreen': this.state.fullscreenEnabled,
+      'modal-open': modalOpen,
+      'fullscreen': fullscreenEnabled,
+      'sidebar-hidden': sidebarHidden,
     });
 
     return (
@@ -138,13 +153,18 @@ class App extends Component {
             </div>
           </div>
         </nav>
-        {this.state.bramble &&
+        {bramble &&
           <ToolBar bramble={bramble}
             fullscreenEnabled={fullscreenEnabled}
+            sidebarHidden={sidebarHidden}
             onFullscreenStatusChanged={this.onFullscreenStatusChanged}
+            onSidebarVisibilityChanged={this.onSidebarVisibilityChanged}
           />
         }
         <div id="bramble-root" className="App-brambleroot"></div>
+        {bramble &&
+          <SideNav bramble={bramble} />
+        }
         <div className={`App-loading_container ${hideSpinner? 'hidden' : ''}`}
           style={{ display: spinnerDisplayMode }}
         >
