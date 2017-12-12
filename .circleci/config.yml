@@ -1,0 +1,49 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/node:8
+
+    working_directory: ~/viola
+
+    steps:
+      - checkout
+      - run: git submodule sync
+      - run: git submodule update --init
+
+      - restore_cache:
+          keys:
+            - viola-v1-dependencies-{{ checksum "package.json" }}
+            # fallback to using the latest cache if no exact match is found
+            - viola-v1-dependencies-
+      - restore_cache:
+          keys:
+            - bramble-v1-dependencies-{{ checksum "brackets/package.json" }}
+            - bramble-v1-dependencies-
+      - restore_cache:
+          keys:
+            - bramble-src-v1-dependencies-{{ checksum "brackets/src/package.json" }}
+            - bramble-src-v1-dependencies-
+
+      - run: npm install
+      - save_cache:
+          key: viola-v1-dependencies-{{ checksum "package.json" }}
+          paths:
+            - node_modules
+      - save_cache:
+          key: bramble-v1-dependencies-{{ checksum "brackets/package.json" }}
+          paths:
+            - brackets/node_modules
+      - save_cache:
+          key: bramble-src-v1-dependencies-{{ checksum "brackets/src/package.json" }}
+          paths:
+            - brackets/src/node_modules
+
+      - run: npm run bramble:build
+      - run: npm build
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - build
