@@ -2,6 +2,9 @@
 
 # Viola
 
+
+[![CircleCI](https://img.shields.io/circleci/project/github/pentapod/viola/master.svg?style=flat-square)](https://circleci.com/gh/pentapod/viola/tree/master)
+
 Online editor for printing and publishing.
 
 The editor UI of this project consists [Bramble](https://github.com/mozilla/brackets) by Mozilla that is forked from [Brackets](http://brackets.io/).
