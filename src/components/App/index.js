@@ -41,6 +41,7 @@ class App extends Component {
 
   initBramble = (bramble) => {
     bramble.showSidebar();
+    bramble.useDarkTheme();   // if not set, sometimes use light theme
     bramble.on('dialogOpened', () => {
       this.setState(Object.assign({}, this.state, {
         modalOpen: true,
