@@ -1,11 +1,10 @@
 import React from 'react';
-import url from 'url';
 import classnames from 'classnames';
 import { IconButton, SelectiveRippleButton } from './../../ui/Button';
 import { ContextMenu, ContextMenuItem } from './../../ui/ContextMenu';
 import './ToolBar.css';
 
-const { REACT_APP_PRINT_PAGE_HOST_URL, REACT_APP_VFS_ROOT_URL } = process.env;
+const { REACT_APP_PRINT_PAGE_HOST_URL } = process.env;
 
 export default class ToolBar extends React.Component {
 
@@ -151,6 +150,10 @@ export default class ToolBar extends React.Component {
   };
 
   onOpenPrintPageButtonClick = () => {
+    this.setState({
+      editorOptionOpen: false,
+    });
+
     // look for <iframe> directly, rather than `getFullPath()'
     const editorIframe = this.props.bramble.getIFrame();
     if (!editorIframe) {

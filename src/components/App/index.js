@@ -6,7 +6,11 @@ import { StatusIndicator } from './../../ui/StatusIndicator';
 import ToolBar from './../ToolBar';
 import './App.css';
 
-const { REACT_APP_BRAMBLE_HOST_URL, REACT_APP_VERSION } = process.env;
+const {
+  REACT_APP_BRAMBLE_HOST_URL,
+  REACT_APP_VERSION,
+  REACT_APP_VIOLA_HOMEPAGE,
+} = process.env;
 
 // eslint-disable-next-line
 const Bramble = window.Bramble;
@@ -122,7 +126,9 @@ class App extends Component {
       <div className={appClasses}>
         <nav className="App-header">
           <div className="App-header-title">
-            <ViolaLogo white className="App-header-title-logo" />
+            <a href={REACT_APP_VIOLA_HOMEPAGE}>
+              <ViolaLogo white className="App-header-title-logo" />
+            </a>
           </div>
           <div className="App-header-lr">
             <div className="App-header-left">
