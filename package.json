@@ -60,8 +60,8 @@
     "storybook": "start-storybook -p 6006",
     "build-storybook": "build-storybook",
     "bramble:install": "cd brackets && npm install",
-    "bramble:build": "cd brackets && grunt build-browser swPrecache && npm run localize",
-    "bramble:build-dev": "cd brackets && grunt build-browser-dev"
+    "bramble:build": "cd brackets && node_modules/.bin/grunt build-browser swPrecache && npm run localize",
+    "bramble:build-dev": "cd brackets && node_modules/.bin/grunt build-browser-dev"
   },
   "jest": {
     "collectCoverageFrom": [
