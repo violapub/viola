@@ -111,10 +111,10 @@ jobs:
           at: .
       - run:
           name: Deploy viola app to staging
-          command: aws s3 sync --delete build s3://writing.viola.pub/stage
+          command: aws s3 sync --delete build s3://writing.draft.viola.pub
       - run:
           name: Deploy bramble app to staging
-          command: aws s3 sync --delete brackets/dist s3://editor.viola.pub/stage
+          command: aws s3 sync --delete brackets/dist s3://editor.draft.viola.pub
 
   ###
   ### deploy-prod
@@ -129,10 +129,10 @@ jobs:
           at: .
       - run:
           name: Deploy viola app to production
-          command: aws s3 sync --delete build s3://writing.viola.pub/prod
+          command: aws s3 sync --delete build s3://writing.viola.pub
       - run:
           name: Deploy bramble app to production
-          command: aws s3 sync --delete brackets/dist s3://editor.viola.pub/prod
+          command: aws s3 sync --delete brackets/dist s3://editor.viola.pub
 
 workflows:
   version: 2
