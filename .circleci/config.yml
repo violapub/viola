@@ -45,10 +45,29 @@ jobs:
             - '*'
 
   ###
-  ### build-bramble
+  ### build-bramble-stage
   ###
-  build-bramble:
+  build-bramble-stage:
     <<: *defaults
+    environment:
+      - REACT_APP_BRAMBLE_HOST_URL: https://draft-editor.viola.pub/index.html
+
+    steps:
+      - attach_workspace:
+          at: .
+      - run: npm run bramble:build
+      - persist_to_workspace:
+          root: .
+          paths:
+            - brackets/dist/*
+
+  ###
+  ### build-bramble-prod
+  build-bramble-prod:
+    <<: *defaults
+    environment:
+      - REACT_APP_BRAMBLE_HOST_URL: https://editor.viola.pub/index.html
+
     steps:
       - attach_workspace:
           at: .
@@ -143,7 +162,7 @@ workflows:
           filters:
             branches:
               only: master
-      - build-bramble:
+      - build-bramble-stage:
           requires:
             - checkout
           filters:
@@ -151,7 +170,7 @@ workflows:
               only: master
       - build-viola-stage:
           requires:
-            - build-bramble
+            - build-bramble-stage
           filters:
             branches:
               only: master
@@ -163,9 +182,17 @@ workflows:
               only: master
 
     # production
+      - build-bramble-prod:
+          requires:
+            - checkout
+          filters:
+            tags:
+              only: /^v\d+\.\d+\.\d+$/
+            branches:
+              only: master
       - build-viola-prod:
           requires:
-            - build-bramble
+            - build-bramble-prod
           filters:
             tags:
               only: /^v\d+\.\d+\.\d+$/
