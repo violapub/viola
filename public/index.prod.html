@@ -2,7 +2,7 @@
   // obtain bramble.xxxxxx.js path
   const brambleJsFile = webpack.assets.map(assets => assets['name']).filter(name => name.includes('bramble'))[0];
   const violaDataStr = encodeURIComponent(JSON.stringify({
-    projectMeta: '/public/template/welcome/meta.json',
+    projectMeta: '/template/welcome/meta.json',
   }));
 %>
 

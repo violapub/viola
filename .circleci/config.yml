@@ -64,9 +64,9 @@ jobs:
   build-viola-stage:
     <<: *defaults
     environment:
-      - REACT_APP_BRAMBLE_HOST_URL: https://editor.draft.viola.pub/index.html?locale=ja
-      - REACT_APP_PRINT_PAGE_HOST_URL: https://editor.draft.viola.pub/thirdparty/viola-savepdf/index.html
-      - REACT_APP_VFS_ROOT_URL: https://editor.draft.viola.pub/vfs/
+      - REACT_APP_BRAMBLE_HOST_URL: https://draft-editor.viola.pub/index.html?locale=ja
+      - REACT_APP_PRINT_PAGE_HOST_URL: https://draft-editor.viola.pub/thirdparty/viola-savepdf/index.html
+      - REACT_APP_VFS_ROOT_URL: https://draft-editor.viola.pub/vfs/
       - REACT_APP_VIOLA_HOMEPAGE: https://viola.pub
 
     steps:
@@ -111,10 +111,10 @@ jobs:
           at: .
       - run:
           name: Deploy viola app to staging
-          command: aws s3 sync --delete build s3://writing.draft.viola.pub
+          command: aws s3 sync --delete build s3://draft-writing.viola.pub
       - run:
           name: Deploy bramble app to staging
-          command: aws s3 sync --delete brackets/dist s3://editor.draft.viola.pub
+          command: aws s3 sync --delete brackets/dist s3://draft-editor.viola.pub
 
   ###
   ### deploy-prod
