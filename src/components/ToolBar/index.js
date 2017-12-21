@@ -144,16 +144,11 @@ export default class ToolBar extends React.Component {
       editorOptionOpen: false,
     });
 
-    // look for <iframe> directly, rather than `getFullPath()'
-    const editorIframe = this.props.bramble.getIFrame();
-    if (!editorIframe) {
+    const previewURL = this.props.bramble.getPreviewURL();
+    if (!previewURL) {
       return;
     }
-    const previewIframe = editorIframe.contentWindow.document.getElementById('bramble-iframe-browser');
-    if (!previewIframe || !previewIframe.src) {
-      return;
-    }
-    const openUrl = `${REACT_APP_PRINT_PAGE_HOST_URL}?render=${encodeURIComponent(previewIframe.src)}`;
+    const openUrl = `${REACT_APP_PRINT_PAGE_HOST_URL}?render=${encodeURIComponent(previewURL)}`;
     window.open(openUrl, 'Viola print page', 'width=800,height=600');
   }
 
