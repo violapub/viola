@@ -161,48 +161,44 @@ workflows:
       - checkout:
           filters:
             branches:
-              only: master
+              only:
+                - develop
+                - master
       - build-bramble-stage:
           requires:
             - checkout
           filters:
             branches:
-              only: master
+              only: develop
       - build-viola-stage:
           requires:
             - build-bramble-stage
           filters:
             branches:
-              only: master
+              only: develop
       - deploy-stage:
           requires:
             - build-viola-stage
           filters:
             branches:
-              only: master
+              only: develop
 
     # production
       - build-bramble-prod:
           requires:
             - checkout
           filters:
-            tags:
-              only: /^v\d+\.\d+\.\d+$/
             branches:
-              ignore: /.*/
+              only: master
       - build-viola-prod:
           requires:
             - build-bramble-prod
           filters:
-            tags:
-              only: /^v\d+\.\d+\.\d+$/
             branches:
-              ignore: /.*/
+              only: master
       - deploy-prod:
           requires:
             - build-viola-prod
           filters:
-            tags:
-              only: /^v\d+\.\d+\.\d+$/
             branches:
-              ignore: /.*/
+              only: master
