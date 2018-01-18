@@ -46,6 +46,7 @@ module.exports = {
   appDevHtml: resolveApp('public/index.dev.html'),
   appProdHtml: resolveApp('public/index.prod.html'),
   appIndexJs: resolveApp('src/index.js'),
+  appSWImportScript: resolveApp('src/service-worker-import.js'),
   appPackageJson: resolveApp('package.json'),
   appSrc: resolveApp('src'),
   yarnLockFile: resolveApp('yarn.lock'),

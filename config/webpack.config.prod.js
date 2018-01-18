@@ -57,6 +57,7 @@ module.exports = {
   entry: [
     require.resolve('./polyfills'),
     require.resolve(paths.brambleJs),
+    paths.appSWImportScript,
     paths.appIndexJs
   ],
   output: {
@@ -110,6 +111,13 @@ module.exports = {
         loader: require.resolve('file-loader'),
         options: {
           name: 'static/js/[name].[hash:8].[ext]',
+        },
+      },
+      {
+        test: /service-worker-import\.js$/,
+        loader: require.resolve('file-loader'),
+        options: {
+          name: '[name].[ext]',
         },
       },
       // TODO: Disable require.ensure as it's not a standard language feature.
@@ -323,6 +331,9 @@ module.exports = {
       // Work around Windows path issue in SWPrecacheWebpackPlugin:
       // https://github.com/facebookincubator/create-react-app/issues/2235
       stripPrefix: paths.appBuild.replace(/\\/g, '/') + '/',
+      importScripts: [
+        { filename: 'service-worker-import.js' },
+      ],
     }),
     // Moment.js is an extremely popular library that bundles large locale files
     // by default due to how Webpack interprets its code. This is a practical

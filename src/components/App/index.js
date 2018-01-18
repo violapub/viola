@@ -3,6 +3,7 @@ import classnames from 'classnames';
 import Project from './../../misc/project';
 import { ViolaLogo } from './../../ui/Logo';
 import { StatusIndicator } from './../../ui/StatusIndicator';
+import { ProgressBar } from './../../ui/ProgressBar';
 import SideNav from './../SideNav';
 import ToolBar from './../ToolBar';
 import './App.css';
@@ -22,6 +23,11 @@ if (REACT_APP_VERSION.split('.')[0] === '0') {
   projectRoot += '/beta';
 }
 
+// Constants for displaying loading progress
+const PROGRESS_RATE_FOR_LOADING_VIOLA = 0.2;
+const PROGRESS_RATE_FOR_LOADING_BRAMBLE = 0.5;
+const PROGRESS_RATE_FOR_LOADING_PROJECT = 0.3;
+
 class App extends Component {
 
   state = {
@@ -32,6 +38,8 @@ class App extends Component {
     spinnerDisplayMode: 'flex',
     fullscreenEnabled: false,
     sidebarHidden: false,
+    loadingViolaProgress: 0,
+    loadingBrambleProgress: 0,
   };
 
   downloadProject = async () => {
@@ -86,6 +94,17 @@ class App extends Component {
       });
     }
 
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data.progress) {
+          console.log("message from SW : ", event.data.progress);
+          this.setState({
+            loadingViolaProgress: event.data.progress,
+          });
+        }
+      });
+    }
+
     Bramble.load('#bramble-root', {
       url: REACT_APP_BRAMBLE_HOST_URL,
       // debug: false,
@@ -130,12 +149,17 @@ class App extends Component {
       spinnerDisplayMode,
       fullscreenEnabled,
       sidebarHidden,
+      loadingViolaProgress,
+      loadingBrambleProgress,
     } = this.state;
     const appClasses = classnames('App', {
       'modal-open': modalOpen,
       'fullscreen': fullscreenEnabled,
       'sidebar-hidden': sidebarHidden,
     });
+
+    const progressValue = loadingViolaProgress * PROGRESS_RATE_FOR_LOADING_VIOLA
+                        + loadingBrambleProgress * PROGRESS_RATE_FOR_LOADING_BRAMBLE;
 
     return (
       <div className={appClasses}>
@@ -172,6 +196,7 @@ class App extends Component {
             <ViolaLogo black className="App-loading_logo" />
           }
           <div className="App-loading_message">Starting<br/>Viola</div>
+          <ProgressBar value={progressValue} max={1} />
         </div>
       </div>
     );
