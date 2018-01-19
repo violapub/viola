@@ -210,11 +210,13 @@ class App extends Component {
         <div className={`App-loading_container ${hideSpinner? 'hidden' : ''}`}
           style={{ display: spinnerDisplayMode }}
         >
-          {fontLoaded &&
-            <ViolaLogo black className="App-loading_logo" />
-          }
-          <div className="App-loading_message">Starting<br/>Viola</div>
-          <ProgressBar value={progressValue} max={1} />
+          <div className="App-loading_container_lr">
+            {fontLoaded &&
+              <ViolaLogo black className="App-loading_logo" />
+            }
+            <div className="App-loading_message">Starting<br/>Viola</div>
+          </div>
+          <ProgressBar value={progressValue} max={1} className="App-loading_progress_bar"/>
         </div>
       </div>
     );
