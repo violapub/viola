@@ -1,5 +1,6 @@
 /* eslint no-undef: 0 */
 /* eslint no-restricted-globals: 0 */
+/* eslint no-use-before-define: 0 */
 
 // WebWorker script imported from servicw-worker.js
 
