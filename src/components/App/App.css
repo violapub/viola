@@ -85,10 +85,11 @@
   bottom: 0;
   left: 0;
   right: 0;
+  margin-right: -24px;/* Align to top-center nav icon */
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-direction: row;
+  flex-direction: column;
   background-color: rgba(212, 208, 202, 0.8);
   opacity: 1;
   transition: opacity 0.4s linear;
@@ -98,6 +99,13 @@
   opacity: 0;
 }
 
+.App-loading_container_lr {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: row;
+}
+
 .App-loading_logo {
   height: 48px;
   margin-right: 10px;
@@ -105,10 +113,14 @@
 }
 
 .App-loading_message {
-  width: 10px;
   white-space: nowrap;
   overflow: visible;
   font-size: 18px;
+}
+
+.App-loading_progress_bar {
+  margin: 20px 0;
+  width: 114px;
 }
 
 @keyframes spinner {
