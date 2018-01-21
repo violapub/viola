@@ -3,6 +3,7 @@ import classnames from 'classnames';
 import Project from './../../misc/project';
 import { ViolaLogo } from './../../ui/Logo';
 import { StatusIndicator } from './../../ui/StatusIndicator';
+import { ProgressBar } from './../../ui/ProgressBar';
 import SideNav from './../SideNav';
 import ToolBar from './../ToolBar';
 import './App.css';
@@ -22,6 +23,11 @@ if (REACT_APP_VERSION.split('.')[0] === '0') {
   projectRoot += '/beta';
 }
 
+// Constants for displaying loading progress
+const PROGRESS_RATE_FOR_LOADING_VIOLA = 0.1;
+const PROGRESS_RATE_FOR_LOADING_BRAMBLE = 0.7;
+const PROGRESS_RATE_FOR_LOADING_PROJECT = 0.2;
+
 class App extends Component {
 
   state = {
@@ -32,6 +38,9 @@ class App extends Component {
     spinnerDisplayMode: 'flex',
     fullscreenEnabled: false,
     sidebarHidden: false,
+    loadingViolaProgress: 0,
+    loadingBrambleProgress: 0,
+    brambleMountable: false,
   };
 
   downloadProject = async () => {
@@ -86,6 +95,16 @@ class App extends Component {
       });
     }
 
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data.progress) {
+          this.setState({
+            loadingViolaProgress: event.data.progress,
+          });
+        }
+      });
+    }
+
     Bramble.load('#bramble-root', {
       url: REACT_APP_BRAMBLE_HOST_URL,
       // debug: false,
@@ -111,9 +130,19 @@ class App extends Component {
         }));
       }, 1000);
     });
+    Bramble.on('loadingProgressUpdate', (event) => {
+      if (event.progress) {
+        this.setState({
+          loadingBrambleProgress: event.progress,
+        });
+      }
+    });
 
     Bramble.on('readyStateChange', (previous, current) => {
       if (current === Bramble.MOUNTABLE) {
+        this.setState({
+          brambleMountable: true,
+        });
         this.downloadProject().then(() => {
           Bramble.mount(projectRoot);
         });
@@ -130,12 +159,25 @@ class App extends Component {
       spinnerDisplayMode,
       fullscreenEnabled,
       sidebarHidden,
+      loadingViolaProgress,
+      loadingBrambleProgress,
+      brambleMountable,
     } = this.state;
     const appClasses = classnames('App', {
       'modal-open': modalOpen,
       'fullscreen': fullscreenEnabled,
       'sidebar-hidden': sidebarHidden,
     });
+
+    let progressValue = loadingViolaProgress * PROGRESS_RATE_FOR_LOADING_VIOLA
+                      + loadingBrambleProgress * PROGRESS_RATE_FOR_LOADING_BRAMBLE;
+    if (brambleMountable && progressValue < (1 - PROGRESS_RATE_FOR_LOADING_PROJECT)) {
+      progressValue = 1 - PROGRESS_RATE_FOR_LOADING_PROJECT;
+    }
+    if (bramble) {
+      // Application is ready
+      progressValue = 1;
+    }
 
     return (
       <div className={appClasses}>
@@ -168,10 +210,13 @@ class App extends Component {
         <div className={`App-loading_container ${hideSpinner? 'hidden' : ''}`}
           style={{ display: spinnerDisplayMode }}
         >
-          {fontLoaded &&
-            <ViolaLogo black className="App-loading_logo" />
-          }
-          <div className="App-loading_message">Starting<br/>Viola</div>
+          <div className="App-loading_container_lr">
+            {fontLoaded &&
+              <ViolaLogo black className="App-loading_logo" />
+            }
+            <div className="App-loading_message">Starting<br/>Viola</div>
+          </div>
+          <ProgressBar value={progressValue} max={1} className="App-loading_progress_bar"/>
         </div>
       </div>
     );
