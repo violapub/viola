@@ -1,3 +1,9 @@
+import { GraphQLClient } from 'graphql-request';
+
+const {
+  REACT_APP_CELLO_HOST_URL,
+} = process.env;
+
 export default class Project {
 
   constructor({
@@ -14,16 +20,46 @@ export default class Project {
     this.FilerBuffer = FilerBuffer;
     this.projectMeta = projectMeta;
     this.projectRoot = projectRoot;
+    this.session = null;
+    this.client = null;
   }
 
   initialize = async () => {
-    if (!this.projectRoot) {
+    const { projectMeta, projectRoot } = this;
+    if (!projectRoot) {
       throw Error('projectRoot is not defined');
     }
 
-    const projectRootExists = await this.exists(this.projectRoot);
+    try {
+      // fetch session info
+      const res = await fetch(REACT_APP_CELLO_HOST_URL + '/auth/session', {
+        credentials: 'include',
+      });
+      this.session = await res.json();
+      this.client = new GraphQLClient(REACT_APP_CELLO_HOST_URL + '/graphql', {
+        headers: {
+          'X-CSRF-Token': this.session.csrfToken,
+        },
+        credentials: 'include',
+        mode: 'cors',
+      });
+
+      // fetch user status
+      const data = await this.request(`
+        query {
+          projects {
+            id updatedAt title
+          }
+        }
+      `);
+      console.log(data);
+    } catch (e) {
+      console.error(e);
+    }
+
+    const projectRootExists = await this.exists(projectRoot);
     if (!projectRootExists) {
-      console.debug(`Downloading project file... metafile: ${this.projectMeta}`);
+      console.debug(`Downloading project file... metafile: ${projectMeta}`);
       await this.download();
     }
   };
@@ -117,5 +153,11 @@ export default class Project {
         }
       })
     })
+  };
+
+  request = async (query, variables) => {
+    const { session, client } = this;
+
+    return await client.request(query, variables);
   };
 };
