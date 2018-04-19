@@ -1,13 +1,18 @@
 import React from 'react';
 import classnames from 'classnames';
 import './ContextMenu.css';
+import { outOfRange } from 'glamor';
 
 const ContextMenu = ({
-  className, children, onOverlayClick,
+  className, children, onOverlayClick, alignRight, black,
   ...other,
 }) => {
+  const classes = classnames(className, 'ContextMenu_container', {
+    'align-right': alignRight,
+    black,
+  });
   return (
-    <div {...other} className={classnames(className, 'ContextMenu_container')}>
+    <div {...other} className={classes}>
       <ul className="ContextMenu_ul"
         onClick={e => {
           e.stopPropagation();
@@ -21,18 +26,21 @@ const ContextMenu = ({
 };
 
 const ContextMenuItem = ({
-  className, children, onClick,
+  className, children, onClick, href,
   ...other,
 }) => {
   const classes = classnames(className, 'ContextMenuItem_container', {
-    'clickable': onClick
+    'clickable': onClick || href,
   });
 
-  return (
+  const content = (
     <li {...other} className={classes} onClick={onClick}>
       {children}
     </li>
   );
+  return href
+    ? <a href={href}>{content}</a>
+    : content;
 };
 
 const ContextMenuDivider = ({

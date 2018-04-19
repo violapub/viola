@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import classnames from 'classnames';
 import Project from './../../misc/project';
+import { Header } from './../../ui/Header';
 import { ViolaLogo } from './../../ui/Logo';
 import { StatusIndicator } from './../../ui/StatusIndicator';
 import { ProgressBar } from './../../ui/ProgressBar';
@@ -181,20 +182,7 @@ class App extends Component {
 
     return (
       <div className={appClasses}>
-        <nav className="App-header">
-          <div className="App-header-title">
-            <a href={REACT_APP_VIOLA_HOMEPAGE}>
-              <ViolaLogo white className="App-header-title-logo" />
-            </a>
-          </div>
-          <div className="App-header-lr">
-            <div className="App-header-left">
-            </div>
-            <div className="App-header-right">
-              <StatusIndicator />
-            </div>
-          </div>
-        </nav>
+        <Header homepageURL={REACT_APP_VIOLA_HOMEPAGE} />
         {bramble &&
           <ToolBar bramble={bramble}
             fullscreenEnabled={fullscreenEnabled}

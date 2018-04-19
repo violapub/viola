@@ -18,54 +18,6 @@
   }
 }
 
-.App-header {
-  box-sizing: border-box;
-  position: relative;
-  background-color: #222;
-  height: 40px;
-  padding: 0;
-  color: #dcdcdc;
-}
-
-.App-header-title {
-  height: 100%;
-  margin: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.App-header-title-logo {
-  margin: 0 12px;
-  height: 24px;
-}
-
-.App-header-title h1 {
-  display: inline;
-  margin: 0;
-  line-height: 40px;
-  font-size: 16px;
-  font-weight: 400;
-}
-
-.App-header-lr {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  pointer-events: none;
-}
-
-.App-header-left,
-.App-header-right {
-  margin: 0 20px;
-  pointer-events: all;
-}
-
 .App-brambleroot {
   position: absolute;
   top: 90px;
