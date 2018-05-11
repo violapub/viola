@@ -18,12 +18,6 @@ const {
 // eslint-disable-next-line
 const Bramble = window.Bramble;
 
-let projectRoot = '/viola';
-// Use beta subdirectory
-if (REACT_APP_VERSION.split('.')[0] === '0') {
-  projectRoot += '/beta';
-}
-
 // Constants for displaying loading progress
 const PROGRESS_RATE_FOR_LOADING_VIOLA = 0.1;
 const PROGRESS_RATE_FOR_LOADING_BRAMBLE = 0.7;
@@ -42,17 +36,27 @@ class App extends Component {
     loadingViolaProgress: 0,
     loadingBrambleProgress: 0,
     brambleMountable: false,
+    user: null,
   };
 
-  downloadProject = async () => {
+  setupProject = async () => {
     const fs = Bramble.getFileSystem();
     const sh = new fs.Shell();
     const path = Bramble.Filer.Path;
     const FilerBuffer = Bramble.Filer.Buffer;
-    const { projectMeta } = this.props.data;
-    const project = new Project({ path, fs, sh, FilerBuffer, projectMeta, projectRoot });
 
-    await project.initialize();
+    const project = new Project();
+    try {
+      await project.initialize({
+        ...this.props.data,
+        path, fs, sh, FilerBuffer,
+      });
+    } catch (e) {
+      console.trace(e);
+    }
+    this.setState({
+      user: project.session && project.session.user,
+    });
   };
 
   initBramble = (bramble) => {
@@ -144,9 +148,7 @@ class App extends Component {
         this.setState({
           brambleMountable: true,
         });
-        this.downloadProject().then(() => {
-          Bramble.mount(projectRoot);
-        });
+        this.setupProject();
       }
     });
   }
@@ -163,6 +165,7 @@ class App extends Component {
       loadingViolaProgress,
       loadingBrambleProgress,
       brambleMountable,
+      user,
     } = this.state;
     const appClasses = classnames('App', {
       'modal-open': modalOpen,
@@ -182,7 +185,7 @@ class App extends Component {
 
     return (
       <div className={appClasses}>
-        <Header homepageURL={REACT_APP_VIOLA_HOMEPAGE} />
+        <Header user={user} homepageURL={REACT_APP_VIOLA_HOMEPAGE} />
         {bramble &&
           <ToolBar bramble={bramble}
             fullscreenEnabled={fullscreenEnabled}

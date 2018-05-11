@@ -6,29 +6,12 @@
   "author": "spring_raining <harusamex.com@gmail.com>",
   "license": "AGPL-3.0",
   "dependencies": {
-<<<<<<< HEAD
     "@storybook/addon-actions": "^3.4.1",
     "@storybook/addon-knobs": "^3.4.1",
     "@storybook/addon-links": "^3.4.1",
     "@storybook/react": "^3.4.1",
     "autoprefixer": "7.1.6",
     "babel-core": "6.26.0",
-=======
-    "classnames": "^2.2.5",
-    "graphql-request": "^1.5.1",
-    "react": "^15.6.1",
-    "react-dom": "^15.6.1",
-    "react-fa": "^4.2.0",
-    "url": "^0.11.0"
-  },
-  "devDependencies": {
-    "@storybook/addon-actions": "^3.2.14",
-    "@storybook/addon-knobs": "^3.3.9",
-    "@storybook/addon-links": "^3.2.14",
-    "@storybook/react": "^3.2.14",
-    "autoprefixer": "7.1.0",
-    "babel-core": "6.24.1",
->>>>>>> cc88dba9810b02b86c57279ad902319ec36854dd
     "babel-eslint": "7.2.3",
     "babel-jest": "20.0.3",
     "babel-loader": "7.1.2",
