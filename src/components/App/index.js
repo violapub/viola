@@ -3,6 +3,7 @@ import classnames from 'classnames';
 import Project from './../../misc/project';
 import { Header } from './../../ui/Header';
 import { ViolaLogo } from './../../ui/Logo';
+import { Modal, ModalHeader, ModalBody, ModalFooter } from './../../ui/Modal';
 import { StatusIndicator } from './../../ui/StatusIndicator';
 import { ProgressBar } from './../../ui/ProgressBar';
 import SideNav from './../SideNav';
@@ -27,7 +28,7 @@ class App extends Component {
 
   state = {
     bramble: null,
-    modalOpen: false,
+    brambleModalOpen: false,
     hideSpinner: false,
     fontLoaded: false,
     spinnerDisplayMode: 'flex',
@@ -37,6 +38,7 @@ class App extends Component {
     loadingBrambleProgress: 0,
     brambleMountable: false,
     user: null,
+    appError: null,
   };
 
   setupProject = async () => {
@@ -51,8 +53,8 @@ class App extends Component {
         ...this.props.data,
         path, fs, sh, FilerBuffer,
       });
-    } catch (e) {
-      console.trace(e);
+    } catch (appError) {
+      this.setState({ appError });
     }
     this.setState({
       user: project.session && project.session.user,
@@ -64,12 +66,12 @@ class App extends Component {
     bramble.useDarkTheme();   // if not set, sometimes use light theme
     bramble.on('dialogOpened', () => {
       this.setState(Object.assign({}, this.state, {
-        modalOpen: true,
+        brambleModalOpen: true,
       }));
     });
     bramble.on('dialogClosed', () => {
       this.setState(Object.assign({}, this.state, {
-        modalOpen: false,
+        brambleModalOpen: false,
       }));
     });
 
@@ -156,7 +158,7 @@ class App extends Component {
   render() {
     const {
       bramble,
-      modalOpen,
+      brambleModalOpen,
       hideSpinner,
       fontLoaded,
       spinnerDisplayMode,
@@ -168,7 +170,7 @@ class App extends Component {
       user,
     } = this.state;
     const appClasses = classnames('App', {
-      'modal-open': modalOpen,
+      'modal-open': brambleModalOpen,
       'fullscreen': fullscreenEnabled,
       'sidebar-hidden': sidebarHidden,
     });
@@ -209,7 +211,29 @@ class App extends Component {
           </div>
           <ProgressBar value={progressValue} max={1} className="App-loading_progress_bar"/>
         </div>
+        {this._renderError()}
       </div>
+    );
+  }
+
+  _renderError = () => {
+    const { appError } = this.state;
+    if (!appError) {
+      return <Modal show={false}></Modal>
+    }
+
+    const errMsg = `プロジェクトの読み込みに失敗しました。(${appError.name})`;
+    return (
+      <Modal show={appError}>
+        <React.Fragment>
+          <ModalHeader>
+            <h2>エラー</h2>
+          </ModalHeader>
+          <ModalBody>
+            {errMsg}
+          </ModalBody>
+        </React.Fragment>
+      </Modal>
     );
   }
 }
