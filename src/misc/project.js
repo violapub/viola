@@ -29,6 +29,7 @@ export default class Project {
     this.sh = sh;
     this.FilerBuffer = FilerBuffer;
     this.projectMeta = projectMeta;
+    this.projectRoot = null;
 
     // fetch session info
     const res = await fetch(API_SESSION, {
@@ -54,14 +55,30 @@ export default class Project {
     }
   };
 
+  touchProject = async () => {
+    const { sh, projectRoot } = this;
+    if (!projectRoot) {
+      return;
+    }
+    return new Promise((res, rej) => {
+      sh.touch(projectRoot, { updateOnly: true }, err => {
+        console.log('touched');
+        if (err) rej(err);
+        else res();
+      });
+    });
+  };
+
   initializeWithProjectId = async (projectId) => {
+    const { path } = this;
+
     if (!this.session.user) {
       throw new NotLoggedInError('Not logged in');
     }
     const { projects } = await this.client.request(`
       query {
         projects {
-          id updatedAt title
+          id updatedAt title projectMeta
         }
       }
     `);
@@ -70,6 +87,27 @@ export default class Project {
     if (!project) {
       throw new ProjectNotFoundError('Project not found');
     }
+
+    let { projectMeta } = project;
+    if (typeof projectMeta === 'string') {
+      projectMeta = await this.getMeta(projectMeta);
+    }
+    const projectRoot = path.join(DIRECTORY_PROJECTS, projectId);
+    if (!(await this.exists(path.join(DIRECTORY_PROJECTS)))) {
+      console.debug(`Downloading project files... projectId: ${projectId}`);
+      await this.download(projectMeta, null, projectRoot);
+    } else {
+      const stat = await this.stat(projectRoot);
+      const localTimestamp = new Date(stat.mtime);
+      const remoteTimestamp = new Date(project.updatedAt);
+      if (remoteTimestamp > localTimestamp) {
+        console.debug(`Updating project files... projectId: ${projectId}`);
+        await this.removeFile(projectRoot, true);
+        await this.download(projectMeta, null, projectRoot);
+      }
+    }
+    this.projectRoot = projectRoot;
+    Bramble.mount(projectRoot);
   };
 
   initializeDemoProject = async () => {
@@ -83,12 +121,13 @@ export default class Project {
 
     const projectRootExists = await this.exists(DIRECTORY_DEMO_PROJECT);
     if (!projectRootExists) {
-      console.debug(`Downloading project file... metafile: ${projectMeta}`);
+      console.debug(`Downloading demo project files... metafile: ${projectMeta}`);
       const meta = await this.getMeta(projectMeta);
       await this.download(meta, path.dirname(projectMeta), DIRECTORY_DEMO_PROJECT);
     }
+    this.projectRoot = DIRECTORY_DEMO_PROJECT;
     Bramble.mount(DIRECTORY_DEMO_PROJECT);
-  }
+  };
 
   getMeta = async (metaURL) => {
     const res = await fetch(metaURL);
@@ -96,7 +135,7 @@ export default class Project {
       throw Error(`${this.projectMeta} returns ${res.status}`);
     }
     return await res.json();
-  }
+  };
 
   download = async (meta, src, dst) => {
     const { path, FilerBuffer } = this;
@@ -122,6 +161,7 @@ export default class Project {
     }
 
     // save project file
+    await this.mkdirp(dst);
     await Promise.all(
       fileBuffer.map(async (buffer, i) => {
         const filename = meta.files[i];
@@ -158,7 +198,7 @@ export default class Project {
         else res(stats);
       });
     });
-  }
+  };
 
   exists = (path) => {
     const { fs } = this;
@@ -175,7 +215,7 @@ export default class Project {
         else res();
       });
     });
-  }
+  };
 
   mkdirp = (dirname) => {
     const { sh } = this;
@@ -196,4 +236,14 @@ export default class Project {
       });
     });
   };
+
+  removeFile = async (filename, recursive = false) => {
+    const { sh } = this;
+    return new Promise((res, rej) => {
+      sh.rm(filename, { recursive }, (err) => {
+        if (err) rej(err);
+        else res();
+      });
+    });
+  }
 };

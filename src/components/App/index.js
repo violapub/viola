@@ -54,8 +54,10 @@ class App extends Component {
         path, fs, sh, FilerBuffer,
       });
     } catch (appError) {
+      console.error(appError);
       this.setState({ appError });
     }
+    this.project = project;
     this.setState({
       user: project.session && project.session.user,
     });
@@ -74,6 +76,9 @@ class App extends Component {
         brambleModalOpen: false,
       }));
     });
+    bramble.on('projectSaved', () => {
+      this.project.touchProject();
+    })
 
     this.setState(Object.assign({}, this.state, {
       bramble: bramble,
