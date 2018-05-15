@@ -78,6 +78,7 @@ class App extends Component {
     });
     bramble.on('projectSaved', () => {
       this.project.touchProject();
+      this.project.syncProject();
     })
 
     this.setState(Object.assign({}, this.state, {

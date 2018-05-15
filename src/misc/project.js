@@ -1,4 +1,6 @@
 import { GraphQLClient } from 'graphql-request';
+import Tar from 'tarts';
+import * as gz from 'jsziptools/gz';
 import { NotLoggedInError, ProjectNotFoundError } from './error';
 
 const {
@@ -13,7 +15,179 @@ const DIRECTORY_BATA_PROJECT = '/viola/beta';
 
 const Bramble = window.Bramble;
 
-export default class Project {
+class FilerImpl {
+  open = async (filename, option = 'utf8') => {
+    const { fs } = this;
+    return new Promise((res, rej) => {
+      fs.readFile(filename, option, (err, data) => {
+        if (err) rej(err);
+        else res(data);
+      });
+    });
+  }
+
+  save = async (filename, data, override = false, writeOptions = null) => {
+    const { path } = this;
+
+    if (!override) {
+      const fileExists = await this.exists(filename);
+      if (fileExists) {
+        throw Error(`file '${filename}' already exists`);
+      }
+    }
+    await this.mkdirp(path.dirname(filename));
+    await this.writeFile(filename, data, writeOptions);
+  };
+
+  stat = (path) => {
+    const { fs } = this;
+    return new Promise((res, rej) => {
+      fs.stat(path, (err, stats) => {
+        if (err) {
+          if (err.code === 'ENOENT') {
+            res(null);  // not found
+          } else {
+            rej(err);
+          }
+        }
+        else res(stats);
+      });
+    });
+  };
+
+  exists = (path) => {
+    const { fs } = this;
+    return new Promise((res, rej) => {
+      fs.exists(path, res);
+    });
+  };
+
+  rename = (oldPath, newPath) => {
+    const { fs } = this;
+    return new Promise((res, rej) => {
+      fs.rename(oldPath, newPath, err => {
+        if (err) rej(err);
+        else res();
+      });
+    });
+  };
+
+  mkdirp = (dirname) => {
+    const { sh } = this;
+    return new Promise((res, rej) => {
+      sh.mkdirp(dirname, err => {
+        if (err) rej(err);
+        else res(dirname);
+      });
+    });
+  };
+
+  writeFile = async (filename, data, options) => {
+    const { fs } = this;
+    return new Promise((res, rej) => {
+      fs.writeFile(filename, data, options, err => {
+        if (err) rej(err);
+        else res(data);
+      });
+    });
+  };
+
+  removeFile = async (filename, recursive = false) => {
+    const { sh } = this;
+    return new Promise((res, rej) => {
+      sh.rm(filename, { recursive }, (err) => {
+        if (err) rej(err);
+        else res();
+      });
+    });
+  };
+
+  readdir = async (path) => {
+    const { fs } = this;
+    return new Promise((res, rej) => {
+      fs.readdir(path, (err, files) => {
+        if (err) rej(err);
+        else res(files);
+      });
+    });
+  };
+}
+
+class SyncManager extends FilerImpl {
+  constructor(args) {
+    super(args);
+    const { path, fs, sh, FilerBuffer, projectId } = args;
+    this.path = path;
+    this.fs = fs;
+    this.sh = sh;
+    this.FilerBuffer = FilerBuffer;
+    this.projectId = projectId;
+  }
+
+  getSyncInfo = async () => {
+    const { path, projectId } = this;
+    const infoPath = path.join(DIRECTORY_PROJECTS, '.sync.json');
+    const data = (await this.exists(infoPath))
+      ? JSON.parse(await this.open(infoPath))
+      : {};
+    return data[projectId];
+  };
+
+  setSyncInfo = async (info) => {
+    const { path, projectId } = this;
+    const infoPath = path.join(DIRECTORY_PROJECTS, '.sync.json');
+    const data = (await this.exists(infoPath))
+      ? JSON.parse(await this.open(infoPath))
+      : {};
+    data[projectId] = info;
+    await this.save(infoPath, JSON.stringify(data), true, { encoding: 'utf8', flag: 'w' });
+  }
+
+  syncData = async () => {
+    const { path, projectId } = this;
+    const projectRoot = path.join(DIRECTORY_PROJECTS, projectId);
+
+    const files = (await this.gatherFiles(projectRoot))
+      .map(f => {
+        f.name = f.name.replace(projectRoot + '/', '');
+        return f;
+      });
+    const tar = Tar(files);
+    const gzipped = gz.compress({ buffer: tar });
+
+    // transmission code here
+
+    const info = await this.getSyncInfo();
+    await this.setSyncInfo({
+      ...info,
+      lastSynced: Date.now(),
+    });
+    console.debug(`Project synced. projectId: ${projectId}`);
+    const url = URL.createObjectURL(new Blob([gzipped], { type: 'application/gzip' }));
+    console.debug(url);
+  }
+
+  gatherFiles = async (dirname) => {
+    const { path, fs } = this;
+    const files = [];
+    const add = async (name) => {
+      const stats = await this.stat(name);
+      if (stats.type === 'DIRECTORY') {
+        const files = await this.readdir(name);
+        await Promise.all(
+          files.map(f => add(path.join(name, f)))
+        );
+      } else {
+        const content = await this.open(name, { encoding: null });
+        files.push({ name, content });
+      }
+    }
+    await add(dirname);
+    return files;
+  };
+}
+
+export default class Project extends FilerImpl {
 
   initialize = async ({
     path,
@@ -30,6 +204,7 @@ export default class Project {
     this.FilerBuffer = FilerBuffer;
     this.projectMeta = projectMeta;
     this.projectRoot = null;
+    this.syncManager = null;
 
     // fetch session info
     const res = await fetch(API_SESSION, {
@@ -45,6 +220,7 @@ export default class Project {
     });
 
     if (role === 'project') {
+      this.syncManager = new SyncManager({ path, fs, sh, FilerBuffer, projectId });
       await this.initializeWithProjectId(projectId);
     }
     else if (role === 'template') {
@@ -62,11 +238,14 @@ export default class Project {
     }
     return new Promise((res, rej) => {
       sh.touch(projectRoot, { updateOnly: true }, err => {
-        console.log('touched');
         if (err) rej(err);
         else res();
       });
     });
+  };
+
+  syncProject = async () => {
+    await this.syncManager.syncData();
   };
 
   initializeWithProjectId = async (projectId) => {
@@ -87,6 +266,8 @@ export default class Project {
     if (!project) {
       throw new ProjectNotFoundError('Project not found');
     }
+
+    await this.syncManager.getSyncInfo();
 
     let { projectMeta } = project;
     if (typeof projectMeta === 'string') {
@@ -170,80 +351,4 @@ export default class Project {
       })
     );
   };
-
-  save = async (filename, data, override = false) => {
-    const { path } = this;
-
-    if (!override) {
-      const fileExists = await this.exists(filename);
-      if (fileExists) {
-        throw Error(`file '${filename}' already exists`);
-      }
-    }
-    await this.mkdirp(path.dirname(filename));
-    await this.writeFile(filename, data);
-  };
-
-  stat = (path) => {
-    const { fs } = this;
-    return new Promise((res, rej) => {
-      fs.stat(path, (err, stats) => {
-        if (err) {
-          if (err.code === 'ENOENT') {
-            res(null);  // not found
-          } else {
-            rej(err);
-          }
-        }
-        else res(stats);
-      });
-    });
-  };
-
-  exists = (path) => {
-    const { fs } = this;
-    return new Promise((res, rej) => {
-      fs.exists(path, res);
-    });
-  };
-
-  rename = (oldPath, newPath) => {
-    const { fs } = this;
-    return new Promise((res, rej) => {
-      fs.rename(oldPath, newPath, err => {
-        if (err) rej(err);
-        else res();
-      });
-    });
-  };
-
-  mkdirp = (dirname) => {
-    const { sh } = this;
-    return new Promise((res, rej) => {
-      sh.mkdirp(dirname, err => {
-        if (err) rej(err);
-        else res(dirname);
-      });
-    });
-  };
-
-  writeFile = async (filename, data) => {
-    const { fs } = this;
-    return new Promise((res, rej) => {
-      fs.writeFile(filename, data, err => {
-        if (err) rej(err);
-        else res(data);
-      });
-    });
-  };
-
-  removeFile = async (filename, recursive = false) => {
-    const { sh } = this;
-    return new Promise((res, rej) => {
-      sh.rm(filename, { recursive }, (err) => {
-        if (err) rej(err);
-        else res();
-      });
-    });
-  }
 };
