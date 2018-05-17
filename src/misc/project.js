@@ -1,6 +1,8 @@
 import { GraphQLClient } from 'graphql-request';
+import axios from 'axios';
 import Tar from 'tarts';
 import * as gz from 'jsziptools/gz';
+import shortid from 'shortid';
 import { NotLoggedInError, ProjectNotFoundError } from './error';
 
 const {
@@ -8,10 +10,19 @@ const {
 } = process.env;
 
 const API_SESSION = REACT_APP_CELLO_HOST_URL + '/auth/session';
-const API_GRAPHQL = REACT_APP_CELLO_HOST_URL + '/graphql'
+const API_GRAPHQL = REACT_APP_CELLO_HOST_URL + '/graphql';
+const API_PROJECT_UPLOAD = REACT_APP_CELLO_HOST_URL + '/api/1/project/upload';
+const API_PROJECT_COMMIT = REACT_APP_CELLO_HOST_URL + '/api/1/project/commit';
 const DIRECTORY_PROJECTS = '/viola/project';
 const DIRECTORY_DEMO_PROJECT = '/viola/demo';
 const DIRECTORY_BATA_PROJECT = '/viola/beta';
+const UPLOAD_PROJECT_TIMEOUT = 100;
+
+const FilerEvents = {
+  Create: 'create',
+  Move: 'move',
+  Delete: 'delete',
+};
 
 const Bramble = window.Bramble;
 
@@ -113,15 +124,73 @@ class FilerImpl {
   };
 }
 
-class SyncManager extends FilerImpl {
+export class SyncManager extends FilerImpl {
   constructor(args) {
     super(args);
-    const { path, fs, sh, FilerBuffer, projectId } = args;
+    const { path, fs, sh, FilerBuffer, session, projectId } = args;
     this.path = path;
     this.fs = fs;
     this.sh = sh;
     this.FilerBuffer = FilerBuffer;
+    this.session = session;
     this.projectId = projectId;
+
+    this.queuedFilerEvents = [];
+    this.requestFilerEvents = [];
+    this.stalledFilerEvents = [];
+    this.unsyncedFiles = {};
+  }
+
+  // Reduce event duplications by the time series
+  static retroactFilerEvents(events) {
+    function find(path, node) {
+      if (node === true) {
+        return true;
+      } else if (typeof node !== 'object' || !(path[0] in node)) {
+        return undefined;
+      } else {
+        if (path.length <= 1) {
+          return node[path[0]];
+        } else {
+          return find(path.slice(1), node[path[0]]);
+        }
+      }
+    }
+    function set(path, value, node) {
+      if (path.length <= 1) {
+        node[path[0]] = value;
+      } else {
+        if (!(path[0] in node) || typeof node[path[0]] !== 'object') {
+          node[path[0]] = {};
+        }
+        set(path.slice(1), value, node[path[0]]);
+      }
+    }
+
+    const root = {};
+    const retroacted = [];
+    for (let event of [].concat(events).sort((a, b) => b.time - a.time)) {
+      if (event.action === FilerEvents.Create ||
+        event.action === FilerEvents.Delete
+      ) {
+        const filepath = event.filename.split('/').filter(n => n !== '');
+        if (!find(filepath, root)) {
+          set(filepath, true, root);
+          retroacted.unshift(event);
+        }
+      }
+      else if (event.action === FilerEvents.Move) {
+        const srcpath = event.src.split('/').filter(n => n !== '');
+        const dstpath = event.dst.split('/').filter(n => n !== '');
+        set(srcpath, find(dstpath, root), root);
+        set(dstpath, true, root);
+        retroacted.unshift(event);
+      }
+      else {
+        throw Error(`Unknown action: ${event.action}`);
+      }
+    }
+    return retroacted;
   }
 
   getSyncInfo = async () => {
@@ -141,44 +210,163 @@ class SyncManager extends FilerImpl {
       : {};
     data[projectId] = info;
     await this.save(infoPath, JSON.stringify(data), true, { encoding: 'utf8', flag: 'w' });
-  }
+  };
 
-  syncData = async () => {
+  getProjectRoot = () => {
     const { path, projectId } = this;
-    const projectRoot = path.join(DIRECTORY_PROJECTS, projectId);
-
-    const files = (await this.gatherFiles(projectRoot))
-      .map(f => {
-        f.name = f.name.replace(projectRoot + '/', '');
-        return f;
-      });
-    const tar = Tar(files);
-    const gzipped = gz.compress({ buffer: tar });
-
-    // transmission code here
-
-    const info = await this.getSyncInfo();
-    await this.setSyncInfo({
-      ...info,
-      lastSynced: Date.now(),
-    });
-    console.debug(`Project synced. projectId: ${projectId}`);
-    const url = URL.createObjectURL(new Blob([gzipped], { type: 'application/gzip' }));
-    console.debug(url);
+    return path.join(DIRECTORY_PROJECTS, projectId) + '/';
   }
+
+  // syncData = async () => {
+  //   const { path, projectId } = this;
+  //   const projectRoot = path.join(DIRECTORY_PROJECTS, projectId);
+
+  //   const files = (await this.gatherFiles(projectRoot))
+  //     .map(f => {
+  //       f.name = f.name.replace(projectRoot + '/', '');
+  //       return f;
+  //     });
+  //   const tar = Tar(files);
+  //   const gzipped = gz.compress({ buffer: tar });
+
+  //   // transmission code here
+
+  //   const info = await this.getSyncInfo();
+  //   await this.setSyncInfo({
+  //     ...info,
+  //     lastSynced: Date.now(),
+  //   });
+  //   console.debug(`Project synced. projectId: ${projectId}`);
+  //   const url = URL.createObjectURL(new Blob([gzipped], { type: 'application/gzip' }));
+  //   console.debug(url);
+  // };
+
+  syncUpdatedFileEvents = async () => {
+    const { projectId } = this;
+
+    setTimeout(async () => {
+      const targetEvents = this.stalledFilerEvents.concat(this.queuedFilerEvents);
+      this.queuedFilerEvents = [];
+      this.stalledFilerEvents = [];
+      try {
+        const retroactiveEvents = SyncManager.retroactFilerEvents(targetEvents);
+        const files = retroactiveEvents.filter(e => e.id in this.unsyncedFiles)
+          .map(e =>
+            this.unsyncedFiles[e.id].map(f =>
+              Object.assign({}, f, {
+                name: `${e.id}/${f.name}`,
+              })
+            )
+          ).reduce((acc, val) => acc.concat(val), []);
+        const tar = Tar(files);
+        const gzipped = gz.compress({ buffer: tar });
+
+        // transmit updated files
+        const res = await axios.post(API_PROJECT_COMMIT, gzipped.buffer, {
+          headers: {
+            'Content-Type': 'application/octet-stream',
+            'Viola-API-Arg': encodeURIComponent(JSON.stringify({
+              projectId,
+              events: retroactiveEvents,
+            })),
+            'X-CSRF-Token': this.session.csrfToken,
+          },
+          withCredentials: true,
+          timeout: UPLOAD_PROJECT_TIMEOUT,
+        });
+        console.log('res>>>', res);
+
+        // purge unsynced files
+        this.unsyncedFiles = targetEvents.filter(e => e.id in this.unsyncedFiles)
+          .reduce((acc, val) => {
+            delete acc[val.id];
+            return acc;
+          }, this.unsyncedFiles);
+        await this.setSyncInfo({
+          ...await this.getSyncInfo(),
+          lastSynced: Math.max(targetEvents.map(e => e.time)),
+        });
+        console.debug(`Project commited. projectId: ${projectId} `);
+      } catch (err) {
+        if (err.response) {
+          console.debug(`Commit request stalled. (${err.response.status})`);
+        } else {
+          console.error(err);
+        }
+        this.stalledFilerEvents = this.stalledFilerEvents.concat(targetEvents);
+      }
+    }, 10);
+  };
+
+  handleFileChange = async filename => {
+    const projectRoot = this.getProjectRoot();
+    if (!filename.startsWith(projectRoot)) {
+      return;
+    }
+    const id = shortid.generate();
+    this.queuedFilerEvents.push({
+      id,
+      action: FilerEvents.Create,
+      time: Date.now(),
+      filename: filename.replace(projectRoot, ''),
+    });
+    this.unsyncedFiles[id] = await this.gatherFiles(filename.replace(projectRoot, ''));
+  };
+
+  handleFileDelete = async filename => {
+    const projectRoot = this.getProjectRoot();
+    if (!filename.startsWith(projectRoot)) {
+      return;
+    }
+    this.queuedFilerEvents.push({
+      id: shortid.generate(),
+      action: FilerEvents.Delete,
+      time: Date.now(),
+      filename: filename.replace(projectRoot, ''),
+    });
+  };
+
+  handleFileRename = async (oldFilename, newFilename) => {
+    const projectRoot = this.getProjectRoot();
+    if (!oldFilename.startsWith(projectRoot) || !newFilename.startsWith(projectRoot)) {
+      return;
+    }
+    this.queuedFilerEvents.push({
+      id: shortid.generate(),
+      action: FilerEvents.Move,
+      time: Date.now(),
+      src: oldFilename.replace(projectRoot, ''),
+      dst: newFilename.replace(projectRoot, ''),
+    });
+  };
+
+  handleFolderRename = async ({ oldPath, newPath, children }) => {
+    const projectRoot = this.getProjectRoot();
+    if (!oldPath.startsWith(projectRoot) || !newPath.startsWith(projectRoot)) {
+      return;
+    }
+    this.queuedFilerEvents.push({
+      id: shortid.generate(),
+      action: FilerEvents.Move,
+      time: Date.now(),
+      src: oldPath.replace(projectRoot, ''),
+      dst: newPath.replace(projectRoot, ''),
+    });
+  };
 
   gatherFiles = async (dirname) => {
     const { path, fs } = this;
+    const projectRoot = this.getProjectRoot();
     const files = [];
     const add = async (name) => {
-      const stats = await this.stat(name);
+      const stats = await this.stat(path.join(projectRoot, name));
       if (stats.type === 'DIRECTORY') {
-        const files = await this.readdir(name);
+        const files = await this.readdir(path.join(projectRoot, name));
         await Promise.all(
           files.map(f => add(path.join(name, f)))
         );
       } else {
-        const content = await this.open(name, { encoding: null });
+        const content = await this.open(path.join(projectRoot, name), { encoding: null });
         files.push({ name, content });
       }
     }
@@ -187,7 +375,7 @@ class SyncManager extends FilerImpl {
   };
 }
 
-export default class Project extends FilerImpl {
+export class ProjectManager extends FilerImpl {
 
   initialize = async ({
     path,
@@ -210,7 +398,8 @@ export default class Project extends FilerImpl {
     const res = await fetch(API_SESSION, {
       credentials: 'include',
     });
-    this.session = await res.json();
+    const session = await res.json();
+    this.session = session;
     this.client = new GraphQLClient(API_GRAPHQL, {
       headers: {
         'X-CSRF-Token': this.session.csrfToken,
@@ -220,7 +409,7 @@ export default class Project extends FilerImpl {
     });
 
     if (role === 'project') {
-      this.syncManager = new SyncManager({ path, fs, sh, FilerBuffer, projectId });
+      this.syncManager = new SyncManager({ path, fs, sh, FilerBuffer, session, projectId });
       await this.initializeWithProjectId(projectId);
     }
     else if (role === 'template') {
@@ -231,21 +420,49 @@ export default class Project extends FilerImpl {
     }
   };
 
-  touchProject = async () => {
-    const { sh, projectRoot } = this;
-    if (!projectRoot) {
-      return;
-    }
-    return new Promise((res, rej) => {
-      sh.touch(projectRoot, { updateOnly: true }, err => {
-        if (err) rej(err);
-        else res();
-      });
+  setupFileWatcher = (bramble) => {
+    bramble.on('projectSaved', async (evt) => {
+      // await this.touchProject();
+      await this.syncProject();
     });
-  };
+
+    bramble.on('fileChange', async filename => {
+      if (this.syncManager) {
+        this.syncManager.handleFileChange(filename);
+      }
+    });
+    bramble.on('fileDelete', filename => {
+      if (this.syncManager) {
+        this.syncManager.handleFileDelete(filename);
+      }
+    });
+    bramble.on('fileRename', (oldFilename, newFilename) => {
+      if (this.syncManager) {
+        this.syncManager.handleFileRename(oldFilename, newFilename);
+      }
+    });
+    bramble.on('folderRename', ({ oldPath, newPath, children }) => {
+      if (this.syncManager) {
+        this.syncManager.handleFolderRename({ oldPath, newPath, children });
+      }
+    });
+  }
+
+  // touchProject = async () => {
+  //   const { sh, projectRoot } = this;
+  //   if (!projectRoot) {
+  //     return;
+  //   }
+  //   return new Promise((res, rej) => {
+  //     sh.touch(projectRoot, { updateOnly: true }, err => {
+  //       if (err) rej(err);
+  //       else res();
+  //     });
+  //   });
+  // };
 
   syncProject = async () => {
-    await this.syncManager.syncData();
+    await this.syncManager.syncUpdatedFileEvents();
   };
 
   initializeWithProjectId = async (projectId) => {
@@ -267,8 +484,6 @@ export default class Project extends FilerImpl {
       throw new ProjectNotFoundError('Project not found');
     }
 
-    await this.syncManager.getSyncInfo();
-
     let { projectMeta } = project;
     if (typeof projectMeta === 'string') {
       projectMeta = await this.getMeta(projectMeta);
@@ -278,10 +493,12 @@ export default class Project extends FilerImpl {
       console.debug(`Downloading project files... projectId: ${projectId}`);
       await this.download(projectMeta, null, projectRoot);
     } else {
-      const stat = await this.stat(projectRoot);
-      const localTimestamp = new Date(stat.mtime);
+      const localSyncInfo = await this.syncManager.getSyncInfo();
       const remoteTimestamp = new Date(project.updatedAt);
-      if (remoteTimestamp > localTimestamp) {
+
+      if (localSyncInfo.lastSynced
+        && remoteTimestamp > new Date(localSyncInfo.lastSynced)
+      ) {
         console.debug(`Updating project files... projectId: ${projectId}`);
         await this.removeFile(projectRoot, true);
         await this.download(projectMeta, null, projectRoot);

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import classnames from 'classnames';
-import Project from './../../misc/project';
+import { ProjectManager } from './../../misc/project';
 import { Header } from './../../ui/Header';
 import { ViolaLogo } from './../../ui/Logo';
 import { Modal, ModalHeader, ModalBody, ModalFooter } from './../../ui/Modal';
@@ -47,7 +47,7 @@ class App extends Component {
     const path = Bramble.Filer.Path;
     const FilerBuffer = Bramble.Filer.Buffer;
 
-    const project = new Project();
+    const project = new ProjectManager();
     try {
       await project.initialize({
         ...this.props.data,
@@ -76,10 +76,8 @@ class App extends Component {
         brambleModalOpen: false,
       }));
     });
-    bramble.on('projectSaved', () => {
-      this.project.touchProject();
-      this.project.syncProject();
-    })
+
+    this.project.setupFileWatcher(bramble);
 
     this.setState(Object.assign({}, this.state, {
       bramble: bramble,
