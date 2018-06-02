@@ -16,7 +16,7 @@ const API_PROJECT_COMMIT = REACT_APP_CELLO_HOST_URL + '/api/1/project/commit';
 const DIRECTORY_PROJECTS = '/viola/project';
 const DIRECTORY_DEMO_PROJECT = '/viola/demo';
 const DIRECTORY_BATA_PROJECT = '/viola/beta';
-const UPLOAD_PROJECT_TIMEOUT = 100;
+const UPLOAD_PROJECT_TIMEOUT = 15 * 1000;
 
 const FilerEvents = {
   Create: 'create',
@@ -135,6 +135,7 @@ export class SyncManager extends FilerImpl {
     this.session = session;
     this.projectId = projectId;
 
+    this.syncingSemaphore = 1;
     this.queuedFilerEvents = [];
     this.requestFilerEvents = [];
     this.stalledFilerEvents = [];
@@ -248,6 +249,12 @@ export class SyncManager extends FilerImpl {
       const targetEvents = this.stalledFilerEvents.concat(this.queuedFilerEvents);
       this.queuedFilerEvents = [];
       this.stalledFilerEvents = [];
+
+      // Prevent to sync same file events simultaneously
+      if (!this.syncingSemaphore) {
+        return;
+      }
+      this.syncingSemaphore -= 1;
       try {
         const retroactiveEvents = SyncManager.retroactFilerEvents(targetEvents);
         const files = retroactiveEvents.filter(e => e.id in this.unsyncedFiles)
@@ -294,6 +301,8 @@ export class SyncManager extends FilerImpl {
           console.error(err);
         }
         this.stalledFilerEvents = this.stalledFilerEvents.concat(targetEvents);
+      } finally {
+        this.syncingSemaphore += 1;
       }
     }, 10);
   };
@@ -304,13 +313,13 @@ export class SyncManager extends FilerImpl {
       return;
     }
     const id = shortid.generate();
+    this.unsyncedFiles[id] = await this.gatherFiles(filename.replace(projectRoot, ''));
     this.queuedFilerEvents.push({
       id,
       action: FilerEvents.Create,
       time: Date.now(),
       filename: filename.replace(projectRoot, ''),
     });
-    this.unsyncedFiles[id] = await this.gatherFiles(filename.replace(projectRoot, ''));
   };
 
   handleFileDelete = async filename => {
