@@ -1,6 +1,7 @@
 import { GraphQLClient } from 'graphql-request';
 import axios from 'axios';
 import Tar from 'tarts';
+import untar from 'js-untar';
 import * as gz from 'jsziptools/gz';
 import shortid from 'shortid';
 import { NotLoggedInError, ProjectNotFoundError } from './error';
@@ -11,11 +12,13 @@ const {
 
 const API_SESSION = REACT_APP_CELLO_HOST_URL + '/auth/session';
 const API_GRAPHQL = REACT_APP_CELLO_HOST_URL + '/graphql';
+const API_PROJECT_DOWNLOAD = REACT_APP_CELLO_HOST_URL + '/api/1/project/download';
 const API_PROJECT_UPLOAD = REACT_APP_CELLO_HOST_URL + '/api/1/project/upload';
 const API_PROJECT_COMMIT = REACT_APP_CELLO_HOST_URL + '/api/1/project/commit';
 const DIRECTORY_PROJECTS = '/viola/project';
 const DIRECTORY_DEMO_PROJECT = '/viola/demo';
 const DIRECTORY_BATA_PROJECT = '/viola/beta';
+const DOWNLOAD_PROJECT_TIMEOUT = 20 * 1000;
 const UPLOAD_PROJECT_TIMEOUT = 15 * 1000;
 
 const FilerEvents = {
@@ -500,17 +503,17 @@ export class ProjectManager extends FilerImpl {
     const projectRoot = path.join(DIRECTORY_PROJECTS, projectId);
     if (!(await this.exists(path.join(DIRECTORY_PROJECTS)))) {
       console.debug(`Downloading project files... projectId: ${projectId}`);
-      await this.download(projectMeta, null, projectRoot);
+      await this.setupProjectFile(projectId, projectRoot);
     } else {
       const localSyncInfo = await this.syncManager.getSyncInfo();
       const remoteTimestamp = new Date(project.updatedAt);
 
-      if (localSyncInfo.lastSynced
+      if (localSyncInfo
         && remoteTimestamp > new Date(localSyncInfo.lastSynced)
       ) {
         console.debug(`Updating project files... projectId: ${projectId}`);
         await this.removeFile(projectRoot, true);
-        await this.download(projectMeta, null, projectRoot);
+        await this.setupProjectFile(projectId, projectRoot);
       }
     }
     this.projectRoot = projectRoot;
@@ -530,7 +533,7 @@ export class ProjectManager extends FilerImpl {
     if (!projectRootExists) {
       console.debug(`Downloading demo project files... metafile: ${projectMeta}`);
       const meta = await this.getMeta(projectMeta);
-      await this.download(meta, path.dirname(projectMeta), DIRECTORY_DEMO_PROJECT);
+      await this.setupWithMetaFile(meta, path.dirname(projectMeta), DIRECTORY_DEMO_PROJECT);
     }
     this.projectRoot = DIRECTORY_DEMO_PROJECT;
     Bramble.mount(DIRECTORY_DEMO_PROJECT);
@@ -544,7 +547,7 @@ export class ProjectManager extends FilerImpl {
     return await res.json();
   };
 
-  download = async (meta, src, dst) => {
+  setupWithMetaFile = async (meta, src, dst) => {
     const { path, FilerBuffer } = this;
 
     // get project files
@@ -577,4 +580,35 @@ export class ProjectManager extends FilerImpl {
       })
     );
   };
+
+  setupProjectFile = async (projectId, dst) => {
+    const { path, FilerBuffer } = this;
+
+    const res = await axios.post(API_PROJECT_DOWNLOAD, null, {
+      headers: {
+        'Viola-API-Arg': encodeURIComponent(JSON.stringify({
+          projectId,
+        })),
+        'X-CSRF-Token': this.session.csrfToken,
+      },
+      withCredentials: true,
+      responseType: 'arraybuffer',
+      timeout: DOWNLOAD_PROJECT_TIMEOUT,
+    });
+    const tar = gz.decompress({ buffer: res.data });
+    const extractedFiles = await new Promise((res, rej) => {
+      // js-unter returns original Promise object
+      untar(tar.buffer).then(res).catch(rej);
+    });
+
+    await this.mkdirp(dst);
+    await Promise.all(
+      extractedFiles.map(async file => {
+        if (file.size > 0) {
+          const destPath = path.join(dst, file.name);
+          await this.save(destPath, new FilerBuffer(file.buffer));
+        }
+      })
+    );
+  }
 };
