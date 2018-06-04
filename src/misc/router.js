@@ -10,20 +10,23 @@ export default function route() {
     };
   }
 
-  else if (match = pathname.match(/^\/template\/(.+)$/)) {
+  else if (match = pathname.match(/^\/template\/(https?:\/\/.+)$/)) {
     return {
-      role: 'template',
-      target: match[1],
+      role: 'template-unofficial',
+      url: match[1],
+    };
+  }
+
+  else if (match = pathname.match(/^\/template\/([0-9a-zA-Z_-]+)\/?$/)) {
+    return {
+      role: 'template-official',
+      templateName: match[1],
     };
   }
 
   // fallback to root page
   else if (pathname !== '/') {
-    if ('replaceState' in window.history) {
-      window.history.replaceState('', null, '/');
-    } else {
-      window.location.replace('/');
-    }
+    window.history.replaceState('', null, '/');
   }
   return { role: null };
 };

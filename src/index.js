@@ -14,7 +14,7 @@ if (dataDOM && dataDOM.dataset['json']) {
     // do nothing
   }
 }
-const routeInfo = route();
+const routeAction = route();
 
-ReactDOM.render(<App data={{...data, ...routeInfo}} />, document.getElementById('root'));
+ReactDOM.render(<App data={{...data, routeAction }} />, document.getElementById('root'));
 registerServiceWorker();

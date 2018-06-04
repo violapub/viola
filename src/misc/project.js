@@ -4,7 +4,7 @@ import Tar from 'tarts';
 import untar from 'js-untar';
 import * as gz from 'jsziptools/gz';
 import shortid from 'shortid';
-import { NotLoggedInError, ProjectNotFoundError } from './error';
+import { NotLoggedInError, ProjectNotFoundError, TemplateNotFoundError } from './error';
 
 const {
   REACT_APP_CELLO_HOST_URL,
@@ -221,29 +221,31 @@ export class SyncManager extends FilerImpl {
     return path.join(DIRECTORY_PROJECTS, projectId) + '/';
   }
 
-  // syncData = async () => {
-  //   const { path, projectId } = this;
-  //   const projectRoot = path.join(DIRECTORY_PROJECTS, projectId);
+  uploadProjectFiles = async () => {
+    const { path, projectId } = this;
 
-  //   const files = (await this.gatherFiles(projectRoot))
-  //     .map(f => {
-  //       f.name = f.name.replace(projectRoot + '/', '');
-  //       return f;
-  //     });
-  //   const tar = Tar(files);
-  //   const gzipped = gz.compress({ buffer: tar });
+    const files = (await this.gatherFiles('.'));
+    const tar = Tar(files);
+    const gzipped = gz.compress({ buffer: tar });
 
-  //   // transmission code here
+    const res = await axios.post(API_PROJECT_UPLOAD, gzipped.buffer, {
+      headers: {
+        'Content-Type': 'application/octet-stream',
+        'Viola-API-Arg': encodeURIComponent(JSON.stringify({
+          projectId,
+        })),
+        'X-CSRF-Token': this.session.csrfToken,
+      },
+      withCredentials: true,
+      timeout: UPLOAD_PROJECT_TIMEOUT,
+    });
 
-  //   const info = await this.getSyncInfo();
-  //   await this.setSyncInfo({
-  //     ...info,
-  //     lastSynced: Date.now(),
-  //   });
-  //   console.debug(`Project synced. projectId: ${projectId}`);
-  //   const url = URL.createObjectURL(new Blob([gzipped], { type: 'application/gzip' }));
-  //   console.debug(url);
-  // };
+    await this.setSyncInfo({
+      ...await this.getSyncInfo(),
+      lastSynced: Date.now(),
+    });
+    console.debug(`Project uploaded. projectId: ${projectId}`);
+  };
 
   syncUpdatedFileEvents = async () => {
     const { projectId } = this;
@@ -396,7 +398,7 @@ export class ProjectManager extends FilerImpl {
     FilerBuffer,
     role,
     projectMeta,
-    projectId,
+    routeAction,
   }) => {
     this.path = path;
     this.fs = fs;
@@ -420,12 +422,17 @@ export class ProjectManager extends FilerImpl {
       mode: 'cors',
     });
 
-    if (role === 'project') {
+    if (routeAction.role === 'project') {
+      const { projectId } = routeAction;
       this.syncManager = new SyncManager({ path, fs, sh, FilerBuffer, session, projectId });
       await this.initializeWithProjectId(projectId);
     }
-    else if (role === 'template') {
+    else if (routeAction.role === 'template-unofficial') {
 
+    }
+    else if (routeAction.role === 'template-official') {
+      const { templateName } = routeAction;
+      await this.setupWithTemplate(templateName);
     }
     else {
       await this.initializeDemoProject();
@@ -610,5 +617,68 @@ export class ProjectManager extends FilerImpl {
         }
       })
     );
-  }
+  };
+
+  setupWithTemplate = async (templateName) => {
+    const { path, fs, sh, FilerBuffer, session } = this;
+    const { template } = await this.client.request(`
+      query template($templateName: String!) {
+        template(screenName: $templateName) {
+          projectMeta
+          title
+        }
+      }
+    `, { templateName });
+    if (!template) {
+      throw new TemplateNotFoundError('Template not found');
+    }
+    const { projectMeta, title } = template;
+
+    if (this.session.user) {
+      // Create new project and setup template
+      const { createProject } = await this.client.request(`
+        mutation createProject($title: String!, $projectMeta: Json!) {
+          createProject(title: $title, projectMeta: $projectMeta) {
+            id title
+          }
+        }
+      `, {
+        title,
+        projectMeta: {
+          files: [],
+        },
+      });
+      if (!createProject) {
+        throw new Error('Failed to create project');
+      }
+
+      const projectRoot = path.join(DIRECTORY_PROJECTS, createProject.id);
+      this.projectRoot = projectRoot;
+      this.syncManager = new SyncManager({
+        path, fs, sh, FilerBuffer, session,
+        projectId: createProject.id,
+      });
+      const meta = await this.getMeta(projectMeta);
+      console.debug(`Downloading template files... metafile: ${projectMeta}`);
+      await this.setupWithMetaFile(meta, path.dirname(projectMeta), projectRoot);
+      await this.syncManager.uploadProjectFiles();
+
+      window.history.replaceState('', null, `/project/${createProject.id}`);
+      Bramble.mount(projectRoot);
+    }
+    else {
+      // Setup as demo project
+      const meta = await this.getMeta(projectMeta);
+      if (await this.exists(DIRECTORY_DEMO_PROJECT)) {
+        await this.removeFile(DIRECTORY_DEMO_PROJECT, true);
+      }
+
+      console.debug(`Downloading template files... metafile: ${projectMeta}`);
+      await this.setupWithMetaFile(meta, path.dirname(projectMeta), DIRECTORY_DEMO_PROJECT);
+
+      window.history.replaceState('', null, '/');
+      this.projectRoot = DIRECTORY_DEMO_PROJECT;
+      Bramble.mount(DIRECTORY_DEMO_PROJECT);
+    }
+  };
 };

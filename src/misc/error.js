@@ -11,3 +11,10 @@ export class ProjectNotFoundError extends Error {
     this.name = 'ProjectNotFoundError';
   }
 }
+
+export class TemplateNotFoundError extends Error {
+  constructor(msg) {
+    super(msg);
+    this.name = 'TemplateNotFoundError';
+  }
+}
