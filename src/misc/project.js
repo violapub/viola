@@ -228,11 +228,13 @@ export class SyncManager extends FilerImpl {
     const tar = Tar(files);
     const gzipped = gz.compress({ buffer: tar });
 
+    const syncTime = Date.now();
     const res = await axios.post(API_PROJECT_UPLOAD, gzipped.buffer, {
       headers: {
         'Content-Type': 'application/octet-stream',
         'Viola-API-Arg': encodeURIComponent(JSON.stringify({
           projectId,
+          time: syncTime,
         })),
         'X-CSRF-Token': this.session.csrfToken,
       },
@@ -242,7 +244,7 @@ export class SyncManager extends FilerImpl {
 
     await this.setSyncInfo({
       ...await this.getSyncInfo(),
-      lastSynced: Date.now(),
+      lastSynced: syncTime,
     });
     console.debug(`Project uploaded. projectId: ${projectId}`);
   };
@@ -493,7 +495,7 @@ export class ProjectManager extends FilerImpl {
     const { projects } = await this.client.request(`
       query {
         projects {
-          id updatedAt title projectMeta
+          id title lastSynced
         }
       }
     `);
@@ -503,20 +505,17 @@ export class ProjectManager extends FilerImpl {
       throw new ProjectNotFoundError('Project not found');
     }
 
-    let { projectMeta } = project;
-    if (typeof projectMeta === 'string') {
-      projectMeta = await this.getMeta(projectMeta);
-    }
     const projectRoot = path.join(DIRECTORY_PROJECTS, projectId);
     if (!(await this.exists(path.join(DIRECTORY_PROJECTS)))) {
       console.debug(`Downloading project files... projectId: ${projectId}`);
       await this.setupProjectFile(projectId, projectRoot);
     } else {
       const localSyncInfo = await this.syncManager.getSyncInfo();
-      const remoteTimestamp = new Date(project.updatedAt);
+      const remoteSyncTime = project.lastSynced? new Date(project.lastSynced) : null;
 
       if (localSyncInfo
-        && remoteTimestamp > new Date(localSyncInfo.lastSynced)
+        && remoteSyncTime
+        && remoteSyncTime > new Date(localSyncInfo.lastSynced)
       ) {
         console.debug(`Updating project files... projectId: ${projectId}`);
         await this.removeFile(projectRoot, true);
@@ -637,16 +636,13 @@ export class ProjectManager extends FilerImpl {
     if (this.session.user) {
       // Create new project and setup template
       const { createProject } = await this.client.request(`
-        mutation createProject($title: String!, $projectMeta: Json!) {
-          createProject(title: $title, projectMeta: $projectMeta) {
+        mutation createProject($title: String!) {
+          createProject(title: $title) {
             id title
           }
         }
       `, {
         title,
-        projectMeta: {
-          files: [],
-        },
       });
       if (!createProject) {
         throw new Error('Failed to create project');
