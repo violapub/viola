@@ -538,28 +538,28 @@ export class ProjectManager extends FilerImpl {
     const projectRootExists = await this.exists(DIRECTORY_DEMO_PROJECT);
     if (!projectRootExists) {
       console.debug(`Downloading demo project files... metafile: ${projectMeta}`);
-      const meta = await this.getMeta(projectMeta);
-      await this.setupWithMetaFile(meta, path.dirname(projectMeta), DIRECTORY_DEMO_PROJECT);
+      await this.setupWithMetaFile(projectMeta, DIRECTORY_DEMO_PROJECT);
     }
     this.projectRoot = DIRECTORY_DEMO_PROJECT;
     Bramble.mount(DIRECTORY_DEMO_PROJECT);
   };
 
-  getMeta = async (metaURL) => {
-    const res = await fetch(metaURL);
-    if (!res.ok) {
-      throw Error(`${this.projectMeta} returns ${res.status}`);
-    }
-    return await res.json();
-  };
-
-  setupWithMetaFile = async (meta, src, dst) => {
+  setupWithMetaFile = async (metaURL, dst, override = false) => {
     const { path, FilerBuffer } = this;
 
+    const metaRes = await fetch(metaURL);
+    if (!metaRes.ok) {
+      throw Error(`${metaURL} returns ${metaRes.status}`);
+    }
+    const meta = await metaRes.json();
+    if (override && await this.exists(dst)) {
+      await this.removeFile(dst, true);
+    }
+
     // get project files
-    const sourceFileList = meta.files.map(p => {
-      return path.join(src, p);
-    });
+    const urlObj = new URL(metaURL);
+    urlObj.pathname = path.dirname(urlObj.pathname);
+    const sourceFileList = meta.files.map(p => `${urlObj.href}/${p}`);
     const fileRes = await Promise.all(
       sourceFileList.map(p => fetch(p))
     );
@@ -654,9 +654,8 @@ export class ProjectManager extends FilerImpl {
         path, fs, sh, FilerBuffer, session,
         projectId: createProject.id,
       });
-      const meta = await this.getMeta(projectMeta);
       console.debug(`Downloading template files... metafile: ${projectMeta}`);
-      await this.setupWithMetaFile(meta, path.dirname(projectMeta), projectRoot);
+      await this.setupWithMetaFile(projectMeta, projectRoot);
       await this.syncManager.uploadProjectFiles();
 
       window.history.replaceState('', null, `/project/${createProject.id}`);
@@ -664,13 +663,8 @@ export class ProjectManager extends FilerImpl {
     }
     else {
       // Setup as demo project
-      const meta = await this.getMeta(projectMeta);
-      if (await this.exists(DIRECTORY_DEMO_PROJECT)) {
-        await this.removeFile(DIRECTORY_DEMO_PROJECT, true);
-      }
-
       console.debug(`Downloading template files... metafile: ${projectMeta}`);
-      await this.setupWithMetaFile(meta, path.dirname(projectMeta), DIRECTORY_DEMO_PROJECT);
+      await this.setupWithMetaFile(projectMeta, DIRECTORY_DEMO_PROJECT, true);
 
       window.history.replaceState('', null, '/');
       this.projectRoot = DIRECTORY_DEMO_PROJECT;
