@@ -56,6 +56,7 @@
     "style-loader": "0.19.0",
     "sw-precache-webpack-plugin": "0.11.4",
     "tarts": "^0.1.0",
+    "uglifyjs-webpack-plugin": "1.2.5",
     "url": "^0.11.0",
     "url-loader": "0.6.2",
     "webpack": "3.8.1",
