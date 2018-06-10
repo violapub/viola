@@ -35,7 +35,7 @@ services:
       VIRTUAL_HOST: writing.violadev.localdomain
       VIRTUAL_PORT: 3000
       REACT_APP_BRAMBLE_HOST_URL: https://editor.violadev.localdomain/index.html?locale=ja
-      REACT_APP_PRINT_PAGE_HOST_URL: https://editor.violadev.localdomain/thirdparty/viola
+      REACT_APP_PRINT_PAGE_HOST_URL: https://editor.violadev.localdomain/thirdparty/viola-savepdf/index.html
       REACT_APP_VFS_ROOT_URL: https://editor.violadev.localdomain/vfs/
       REACT_APP_VIOLA_HOMEPAGE: https://violadev.localdomain
       REACT_APP_CELLO_HOST_URL: https://violadev.localdomain
