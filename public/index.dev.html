@@ -2,7 +2,7 @@
   const brambleRoot = process.env.REACT_APP_BRAMBLE_HOST_URL
     .match(/^(.+)\/.*$/)[1];
   const violaDataStr = encodeURIComponent(JSON.stringify({
-    projectMeta: '/template/welcome/meta.json',
+    projectMeta: 'https://raw.githubusercontent.com/violapub/templates/master/welcome-ja/meta.json',
   }));
 %>
 

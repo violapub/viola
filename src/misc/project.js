@@ -288,7 +288,6 @@ export class SyncManager extends FilerImpl {
           withCredentials: true,
           timeout: UPLOAD_PROJECT_TIMEOUT,
         });
-        console.log('res>>>', res);
 
         // purge unsynced files
         this.unsyncedFiles = targetEvents.filter(e => e.id in this.unsyncedFiles)
@@ -426,8 +425,7 @@ export class ProjectManager extends FilerImpl {
 
     if (routeAction.role === 'project') {
       const { projectId } = routeAction;
-      this.syncManager = new SyncManager({ path, fs, sh, FilerBuffer, session, projectId });
-      await this.initializeWithProjectId(projectId);
+      await this.setupWithProjectId(projectId);
     }
     else if (routeAction.role === 'template-unofficial') {
 
@@ -437,7 +435,7 @@ export class ProjectManager extends FilerImpl {
       await this.setupWithTemplate(templateName);
     }
     else {
-      await this.initializeDemoProject();
+      await this.setupDemoProject();
     }
   };
 
@@ -469,27 +467,14 @@ export class ProjectManager extends FilerImpl {
     });
   }
 
-  // touchProject = async () => {
-  //   const { sh, projectRoot } = this;
-  //   if (!projectRoot) {
-  //     return;
-  //   }
-  //   return new Promise((res, rej) => {
-  //     sh.touch(projectRoot, { updateOnly: true }, err => {
-  //       if (err) rej(err);
-  //       else res();
-  //     });
-  //   });
-  // };
-
   syncProject = async () => {
     await this.syncManager.syncUpdatedFileEvents();
   };
 
-  initializeWithProjectId = async (projectId) => {
-    const { path } = this;
+  setupWithProjectId = async (projectId) => {
+    const { path, fs, sh, FilerBuffer, session } = this;
 
-    if (!this.session.user) {
+    if (!session.user) {
       throw new NotLoggedInError('Not logged in');
     }
     const { projects } = await this.client.request(`
@@ -505,10 +490,24 @@ export class ProjectManager extends FilerImpl {
       throw new ProjectNotFoundError('Project not found');
     }
 
+    // Remove local projects that the user doesn't have
+    const remoteProjectIds = projects.map(p => p.id);
+    const localProjectIds = (await this.readdir(DIRECTORY_PROJECTS))
+      .filter(name => !name.startsWith('.'));
+    await Promise.all(
+      localProjectIds.filter(id => !remoteProjectIds.includes(id))
+        .map(id => this.removeFile(path.join(DIRECTORY_PROJECTS, id), true))
+    );
+
     const projectRoot = path.join(DIRECTORY_PROJECTS, projectId);
-    if (!(await this.exists(path.join(DIRECTORY_PROJECTS)))) {
+    this.projectRoot = projectRoot;
+    this.syncManager = new SyncManager({
+      path, fs, sh, FilerBuffer, session, projectId
+    });
+
+    if (!(await this.exists(projectRoot))) {
       console.debug(`Downloading project files... projectId: ${projectId}`);
-      await this.setupProjectFile(projectId, projectRoot);
+      await this.initializeProjectFile(projectId, projectRoot);
     } else {
       const localSyncInfo = await this.syncManager.getSyncInfo();
       const remoteSyncTime = project.lastSynced? new Date(project.lastSynced) : null;
@@ -519,14 +518,13 @@ export class ProjectManager extends FilerImpl {
       ) {
         console.debug(`Updating project files... projectId: ${projectId}`);
         await this.removeFile(projectRoot, true);
-        await this.setupProjectFile(projectId, projectRoot);
+        await this.initializeProjectFile(projectId, projectRoot);
       }
     }
-    this.projectRoot = projectRoot;
     Bramble.mount(projectRoot);
   };
 
-  initializeDemoProject = async () => {
+  setupDemoProject = async () => {
     const { path, projectMeta } = this;
 
     const stats = await this.stat(DIRECTORY_BATA_PROJECT);
@@ -538,13 +536,67 @@ export class ProjectManager extends FilerImpl {
     const projectRootExists = await this.exists(DIRECTORY_DEMO_PROJECT);
     if (!projectRootExists) {
       console.debug(`Downloading demo project files... metafile: ${projectMeta}`);
-      await this.setupWithMetaFile(projectMeta, DIRECTORY_DEMO_PROJECT);
+      await this.initializeWithMetaFile(projectMeta, DIRECTORY_DEMO_PROJECT);
     }
     this.projectRoot = DIRECTORY_DEMO_PROJECT;
     Bramble.mount(DIRECTORY_DEMO_PROJECT);
   };
 
-  setupWithMetaFile = async (metaURL, dst, override = false) => {
+  setupWithTemplate = async (templateName) => {
+    const { path, fs, sh, FilerBuffer, session } = this;
+    const { template } = await this.client.request(`
+      query template($templateName: String!) {
+        template(screenName: $templateName) {
+          projectMeta
+          title
+        }
+      }
+    `, { templateName });
+    if (!template) {
+      throw new TemplateNotFoundError('Template not found');
+    }
+    const { projectMeta, title } = template;
+
+    if (this.session.user) {
+      // Create new project and setup template
+      const { createProject } = await this.client.request(`
+        mutation createProject($title: String!) {
+          createProject(title: $title) {
+            id title
+          }
+        }
+      `, {
+        title,
+      });
+      if (!createProject) {
+        throw new Error('Failed to create project');
+      }
+
+      const projectRoot = path.join(DIRECTORY_PROJECTS, createProject.id);
+      this.projectRoot = projectRoot;
+      this.syncManager = new SyncManager({
+        path, fs, sh, FilerBuffer, session,
+        projectId: createProject.id,
+      });
+      console.debug(`Downloading template files... metafile: ${projectMeta}`);
+      await this.initializeWithMetaFile(projectMeta, projectRoot);
+      await this.syncManager.uploadProjectFiles();
+
+      window.history.replaceState('', null, `/project/${createProject.id}`);
+      Bramble.mount(projectRoot);
+    }
+    else {
+      // Setup as demo project
+      console.debug(`Downloading template files... metafile: ${projectMeta}`);
+      await this.initializeWithMetaFile(projectMeta, DIRECTORY_DEMO_PROJECT, true);
+
+      window.history.replaceState('', null, '/');
+      this.projectRoot = DIRECTORY_DEMO_PROJECT;
+      Bramble.mount(DIRECTORY_DEMO_PROJECT);
+    }
+  };
+
+  initializeWithMetaFile = async (metaURL, dst, override = false) => {
     const { path, FilerBuffer } = this;
 
     const metaRes = await fetch(metaURL);
@@ -587,7 +639,7 @@ export class ProjectManager extends FilerImpl {
     );
   };
 
-  setupProjectFile = async (projectId, dst) => {
+  initializeProjectFile = async (projectId, dst) => {
     const { path, FilerBuffer } = this;
 
     const res = await axios.post(API_PROJECT_DOWNLOAD, null, {
@@ -616,59 +668,5 @@ export class ProjectManager extends FilerImpl {
         }
       })
     );
-  };
-
-  setupWithTemplate = async (templateName) => {
-    const { path, fs, sh, FilerBuffer, session } = this;
-    const { template } = await this.client.request(`
-      query template($templateName: String!) {
-        template(screenName: $templateName) {
-          projectMeta
-          title
-        }
-      }
-    `, { templateName });
-    if (!template) {
-      throw new TemplateNotFoundError('Template not found');
-    }
-    const { projectMeta, title } = template;
-
-    if (this.session.user) {
-      // Create new project and setup template
-      const { createProject } = await this.client.request(`
-        mutation createProject($title: String!) {
-          createProject(title: $title) {
-            id title
-          }
-        }
-      `, {
-        title,
-      });
-      if (!createProject) {
-        throw new Error('Failed to create project');
-      }
-
-      const projectRoot = path.join(DIRECTORY_PROJECTS, createProject.id);
-      this.projectRoot = projectRoot;
-      this.syncManager = new SyncManager({
-        path, fs, sh, FilerBuffer, session,
-        projectId: createProject.id,
-      });
-      console.debug(`Downloading template files... metafile: ${projectMeta}`);
-      await this.setupWithMetaFile(projectMeta, projectRoot);
-      await this.syncManager.uploadProjectFiles();
-
-      window.history.replaceState('', null, `/project/${createProject.id}`);
-      Bramble.mount(projectRoot);
-    }
-    else {
-      // Setup as demo project
-      console.debug(`Downloading template files... metafile: ${projectMeta}`);
-      await this.setupWithMetaFile(projectMeta, DIRECTORY_DEMO_PROJECT, true);
-
-      window.history.replaceState('', null, '/');
-      this.projectRoot = DIRECTORY_DEMO_PROJECT;
-      Bramble.mount(DIRECTORY_DEMO_PROJECT);
-    }
   };
 };
