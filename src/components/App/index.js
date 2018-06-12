@@ -12,9 +12,15 @@ import './App.css';
 
 const {
   REACT_APP_BRAMBLE_HOST_URL,
+  REACT_APP_CELLO_HOST_URL,
   REACT_APP_VERSION,
   REACT_APP_VIOLA_HOMEPAGE,
 } = process.env;
+
+const CELLO_SIGNUP_URL = REACT_APP_CELLO_HOST_URL + '/login';
+const CELLO_LOGIN_URL = REACT_APP_CELLO_HOST_URL + '/login';
+const CELLO_PROJECTS_URL = REACT_APP_CELLO_HOST_URL + '/projects';
+const CELLO_SIGNOUT_URL = REACT_APP_CELLO_HOST_URL + '/auth/signout';
 
 // eslint-disable-next-line
 const Bramble = window.Bramble;
@@ -38,6 +44,7 @@ class App extends Component {
     loadingBrambleProgress: 0,
     brambleMountable: false,
     user: null,
+    projectInfo: null,
     appError: null,
   };
 
@@ -60,6 +67,7 @@ class App extends Component {
     this.project = project;
     this.setState({
       user: project.session && project.session.user,
+      projectInfo: project.getProjectInfo(),
     });
   };
 
@@ -172,6 +180,7 @@ class App extends Component {
       loadingBrambleProgress,
       brambleMountable,
       user,
+      projectInfo,
     } = this.state;
     const appClasses = classnames('App', {
       'modal-open': brambleModalOpen,
@@ -191,7 +200,15 @@ class App extends Component {
 
     return (
       <div className={appClasses}>
-        <Header user={user} homepageURL={REACT_APP_VIOLA_HOMEPAGE} />
+        <Header
+          user={user}
+          projectName={projectInfo && projectInfo.title}
+          homepageURL={REACT_APP_VIOLA_HOMEPAGE}
+          loginURL={CELLO_LOGIN_URL}
+          signupURL={CELLO_SIGNUP_URL}
+          projectListURL={CELLO_PROJECTS_URL}
+          logoutURL={CELLO_SIGNOUT_URL}
+        />
         {bramble &&
           <ToolBar bramble={bramble}
             fullscreenEnabled={fullscreenEnabled}

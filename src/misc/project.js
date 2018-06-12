@@ -407,6 +407,7 @@ export class ProjectManager extends FilerImpl {
     this.FilerBuffer = FilerBuffer;
     this.projectMeta = projectMeta;
     this.projectRoot = null;
+    this.projectInfo = null;
     this.syncManager = null;
 
     // fetch session info
@@ -467,6 +468,10 @@ export class ProjectManager extends FilerImpl {
     });
   }
 
+  getProjectInfo = () => {
+    return this.projectInfo;
+  };
+
   syncProject = async () => {
     await this.syncManager.syncUpdatedFileEvents();
   };
@@ -501,6 +506,7 @@ export class ProjectManager extends FilerImpl {
 
     const projectRoot = path.join(DIRECTORY_PROJECTS, projectId);
     this.projectRoot = projectRoot;
+    this.projectInfo = project;
     this.syncManager = new SyncManager({
       path, fs, sh, FilerBuffer, session, projectId
     });
@@ -562,7 +568,7 @@ export class ProjectManager extends FilerImpl {
       const { createProject } = await this.client.request(`
         mutation createProject($title: String!) {
           createProject(title: $title) {
-            id title
+            id title lastSynced
           }
         }
       `, {
@@ -574,6 +580,7 @@ export class ProjectManager extends FilerImpl {
 
       const projectRoot = path.join(DIRECTORY_PROJECTS, createProject.id);
       this.projectRoot = projectRoot;
+      this.projectInfo = createProject;
       this.syncManager = new SyncManager({
         path, fs, sh, FilerBuffer, session,
         projectId: createProject.id,

@@ -29,7 +29,6 @@ class Header extends React.PureComponent {
 
     return Object.assign(prevState, {
       thumbnailURL,
-      menuOpen: false,
     });
   }
 
@@ -59,9 +58,9 @@ class Header extends React.PureComponent {
           <ContextMenuItem href={projectListURL}>
             プロジェクト一覧
           </ContextMenuItem>
-          <ContextMenuItem onClick={() => {console.log('not implemented')}}>
+          {/* <ContextMenuItem onClick={() => {console.log('not implemented')}}>
             プロジェクトを削除
-          </ContextMenuItem>
+          </ContextMenuItem> */}
           <ContextMenuDivider />
           <ContextMenuItem href={logoutURL}>
             ログアウト
