@@ -3,6 +3,7 @@ import axios from 'axios';
 import Tar from 'tarts';
 import untar from 'js-untar';
 import * as gz from 'jsziptools/gz';
+import toml from 'toml';
 import shortid from 'shortid';
 import { NotLoggedInError, ProjectNotFoundError, TemplateNotFoundError } from './error';
 
@@ -610,7 +611,9 @@ export class ProjectManager extends FilerImpl {
     if (!metaRes.ok) {
       throw Error(`${metaURL} returns ${metaRes.status}`);
     }
-    const meta = await metaRes.json();
+    const meta = metaURL.endsWith('.toml')
+      ? toml.parse(await metaRes.text())
+      : await metaRes.json();
     if (override && await this.exists(dst)) {
       await this.removeFile(dst, true);
     }
