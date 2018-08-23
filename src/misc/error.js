@@ -18,3 +18,10 @@ export class TemplateNotFoundError extends Error {
     this.name = 'TemplateNotFoundError';
   }
 }
+
+export class CelloServerConnectionError extends Error {
+  constructor(msg) {
+    super(msg);
+    this.name = 'CelloServerConnectionError';
+  }
+}

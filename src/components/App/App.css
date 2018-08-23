@@ -86,3 +86,7 @@
   94%   { transform: translateX(-6px); }
   100%   { transform: translateX(0); }
 }
+
+.App-error_instruction {
+  margin-top: 18px;
+}

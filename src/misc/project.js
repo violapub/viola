@@ -5,7 +5,7 @@ import untar from 'js-untar';
 import * as gz from 'jsziptools/gz';
 import toml from 'toml';
 import shortid from 'shortid';
-import { NotLoggedInError, ProjectNotFoundError, TemplateNotFoundError } from './error';
+import { NotLoggedInError, ProjectNotFoundError, TemplateNotFoundError, CelloServerConnectionError } from './error';
 
 const {
   REACT_APP_CELLO_HOST_URL,
@@ -412,18 +412,23 @@ export class ProjectManager extends FilerImpl {
     this.syncManager = null;
 
     // fetch session info
-    const res = await fetch(API_SESSION, {
-      credentials: 'include',
-    });
-    const session = await res.json();
-    this.session = session;
-    this.client = new GraphQLClient(API_GRAPHQL, {
-      headers: {
-        'X-CSRF-Token': this.session.csrfToken,
-      },
-      credentials: 'include',
-      mode: 'cors',
-    });
+    try {
+      const res = await fetch(API_SESSION, {
+        credentials: 'include',
+      });
+      this.session = await res.json();
+    } catch (e) {
+      console.debug('Failed to connect with cello server.', e);
+    }
+    if (this.session) {
+      this.client = new GraphQLClient(API_GRAPHQL, {
+        headers: {
+          'X-CSRF-Token': this.session.csrfToken,
+        },
+        credentials: 'include',
+        mode: 'cors',
+      });
+    }
 
     if (routeAction.role === 'project') {
       const { projectId } = routeAction;
@@ -480,6 +485,9 @@ export class ProjectManager extends FilerImpl {
   setupWithProjectId = async (projectId) => {
     const { path, fs, sh, FilerBuffer, session } = this;
 
+    if (!session) {
+      throw new CelloServerConnectionError('Failed to connect with cello server');
+    }
     if (!session.user) {
       throw new NotLoggedInError('Not logged in');
     }
@@ -551,6 +559,10 @@ export class ProjectManager extends FilerImpl {
 
   setupWithTemplate = async (templateName) => {
     const { path, fs, sh, FilerBuffer, session } = this;
+    if (!session) {
+      throw new CelloServerConnectionError('Failed to connect with cello server');
+    }
+
     const { template } = await this.client.request(`
       query template($templateName: String!) {
         template(screenName: $templateName) {

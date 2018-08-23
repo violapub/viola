@@ -4,7 +4,6 @@ import { ProjectManager } from './../../misc/project';
 import { Header } from './../../ui/Header';
 import { ViolaLogo } from './../../ui/Logo';
 import { Modal, ModalHeader, ModalBody, ModalFooter } from './../../ui/Modal';
-import { StatusIndicator } from './../../ui/StatusIndicator';
 import { ProgressBar } from './../../ui/ProgressBar';
 import SideNav from './../SideNav';
 import ToolBar from './../ToolBar';
@@ -46,6 +45,7 @@ class App extends Component {
     user: null,
     projectInfo: null,
     appError: null,
+    headerMenuStatus: 'LOADING',
   };
 
   setupProject = async () => {
@@ -68,6 +68,7 @@ class App extends Component {
     this.setState({
       user: project.session && project.session.user,
       projectInfo: project.getProjectInfo(),
+      headerMenuStatus: project.session? 'LOADED' : 'DISCONNECTED',
     });
   };
 
@@ -181,6 +182,7 @@ class App extends Component {
       brambleMountable,
       user,
       projectInfo,
+      headerMenuStatus,
     } = this.state;
     const appClasses = classnames('App', {
       'modal-open': brambleModalOpen,
@@ -203,6 +205,7 @@ class App extends Component {
         <Header
           user={user}
           projectName={projectInfo && projectInfo.title}
+          menuStatus={headerMenuStatus}
           homepageURL={REACT_APP_VIOLA_HOMEPAGE}
           loginURL={CELLO_LOGIN_URL}
           signupURL={CELLO_SIGNUP_URL}
@@ -244,6 +247,7 @@ class App extends Component {
     }
 
     const errMsg = `プロジェクトの読み込みに失敗しました。(${appError.name})`;
+    const errInstruction = this._renderErrorInstructionMessage(appError);
     return (
       <Modal show={appError}>
         <React.Fragment>
@@ -252,11 +256,28 @@ class App extends Component {
           </ModalHeader>
           <ModalBody>
             {errMsg}
+            {errInstruction
+              ? <div className="App-error_instruction">{errInstruction}</div>
+              : null
+            }
           </ModalBody>
         </React.Fragment>
       </Modal>
     );
   }
+
+  _renderErrorInstructionMessage = (error) => {
+    if (error.name === 'NotLoggedInError') {
+      return (
+        <div>
+          ログインはお済みですか？&nbsp;
+          <a href={CELLO_LOGIN_URL}>ログイン</a>
+        </div>
+      );
+    } else {
+      return null;
+    }
+  };
 }
 
 export default App;
