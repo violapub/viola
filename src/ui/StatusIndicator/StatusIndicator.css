@@ -29,7 +29,7 @@
 
 .StatusIndicator_connection-message {
   flex-grow: 1;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 10px;
   color: #aaa;
 }

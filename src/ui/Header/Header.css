@@ -1,0 +1,83 @@
+.Header {
+  box-sizing: border-box;
+  position: relative;
+  background-color: #222;
+  height: 40px;
+  padding: 0;
+  color: #dcdcdc;
+}
+
+.Header-title {
+  height: 100%;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.Header-title-logo {
+  margin: 0 12px;
+  height: 24px;
+}
+
+.Header-title h1 {
+  display: inline;
+  margin: 0;
+  line-height: 40px;
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.Header-lr {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+  pointer-events: none;
+  user-select: none;
+}
+
+.Header-left,
+.Header-right {
+  display: flex;
+  align-items: stretch;
+  position: relative;
+  pointer-events: all;
+}
+
+.Header-menu_knob {
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.Header-user_avatar {
+  width: 24px;
+  height: 24px;
+  overflow: hidden;
+  border: 1px solid #aaa;
+  border-radius: 50%;
+  background-color: #fff;
+}
+.Header-user_avatar object {
+  width: 100%;
+  height: 100%;
+}
+
+.Header-right .ContextMenu_container {
+  top: 34px;
+}
+
+.Header-context_label {
+  margin-bottom: 6px;
+  font-size: 13px;
+  line-height: 20px;
+  color: #aaa;
+  max-width: 210px;
+}

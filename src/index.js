@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './components/App';
+import route from './misc/router';
 import registerServiceWorker from './registerServiceWorker';
 import './index.css';
 
@@ -13,6 +14,7 @@ if (dataDOM && dataDOM.dataset['json']) {
     // do nothing
   }
 }
+const routeAction = route();
 
-ReactDOM.render(<App data={data} />, document.getElementById('root'));
+ReactDOM.render(<App data={{...data, routeAction }} />, document.getElementById('root'));
 registerServiceWorker();

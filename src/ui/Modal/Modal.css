@@ -1,0 +1,97 @@
+.Modal {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.Modal_underlay {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: rgba(0,0,0,0.5);
+}
+
+.Modal_container {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  perspective: 500px;
+  transform-style: preserve-3d;
+}
+
+.Modal_content {
+  min-width: 200px;
+  overflow: hidden;
+
+  display: flex;
+  flex-direction: column;
+
+  background: white;
+  border-radius: 2px;
+  box-shadow: 0 3px 7px rgba(0,0,0,0.3);
+
+  perspective: 500px;
+  transform-style: preserve-3d;
+  animation: showModal 0.2s cubic-bezier(0.18, 0.89, 0.32, 1.28) 0s 1;
+  user-select: none;
+}
+
+.ModalHeader {
+  padding: 20px 20px 0;
+}
+.ModalHeader h1,
+.ModalHeader h2 {
+  margin: 0;
+}
+
+.ModalBody {
+  padding: 20px;
+}
+
+.ModalFooter {
+  background: rgba(0,0,0,0.1);
+  padding: 15px 20px;
+}
+
+/* Annotated with React CSSTransition */
+
+.modalanim-enter {
+  transition: opacity 0.1s ease-out;
+  opacity: 0.01;
+}
+/* .modalanim-enter .Modal_content {
+  transition: transform 0.2s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+  transform: rotateX(-50deg);
+} */
+.modalanim-enter-active {
+  opacity: 1;
+}
+/* .modalanim-enter-active .Modal_content {
+  transform: rotateX(0);
+} */
+
+.modalanim-exit {
+  transition: opacity 0.1s ease-out;
+  opacity: 1;
+}
+.modalanim-exit-active {
+  opacity: 0.01;
+}
+
+@keyframes showModal {
+  0% {
+    transform: rotateX(-50deg);
+  }
+
+  100% {
+    transform: rotateX(0);
+  }
+}

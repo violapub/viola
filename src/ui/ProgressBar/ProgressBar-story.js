@@ -9,7 +9,7 @@ import { ProgressBar } from './index.js';
 storiesOf('ProgressBar', module)
   .addDecorator(withKnobs)
   .add('ProgressBar', () => (
-    <div>
+    <div style={{ width: '114px' }}>
       <ProgressBar
         value={number('value (percentage)', 70)}
         max={100}
