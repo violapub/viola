@@ -1,7 +1,6 @@
 import React from 'react';
 import classnames from 'classnames';
 import './ContextMenu.css';
-import { outOfRange } from 'glamor';
 
 const ContextMenu = ({
   className, children, onOverlayClick, alignRight, black,

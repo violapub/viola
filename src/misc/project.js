@@ -223,14 +223,14 @@ export class SyncManager extends FilerImpl {
   }
 
   uploadProjectFiles = async () => {
-    const { path, projectId } = this;
+    const { projectId } = this;
 
     const files = (await this.gatherFiles('.'));
     const tar = Tar(files);
     const gzipped = gz.compress({ buffer: tar });
 
     const syncTime = Date.now();
-    const res = await axios.post(API_PROJECT_UPLOAD, gzipped.buffer, {
+    await axios.post(API_PROJECT_UPLOAD, gzipped.buffer, {
       headers: {
         'Content-Type': 'application/octet-stream',
         'Viola-API-Arg': encodeURIComponent(JSON.stringify({
@@ -277,7 +277,7 @@ export class SyncManager extends FilerImpl {
         const gzipped = gz.compress({ buffer: tar });
 
         // transmit updated files
-        const res = await axios.post(API_PROJECT_COMMIT, gzipped.buffer, {
+        await axios.post(API_PROJECT_COMMIT, gzipped.buffer, {
           headers: {
             'Content-Type': 'application/octet-stream',
             'Viola-API-Arg': encodeURIComponent(JSON.stringify({
@@ -371,7 +371,7 @@ export class SyncManager extends FilerImpl {
   };
 
   gatherFiles = async (dirname) => {
-    const { path, fs } = this;
+    const { path } = this;
     const projectRoot = this.getProjectRoot();
     const files = [];
     const add = async (name) => {
@@ -540,7 +540,7 @@ export class ProjectManager extends FilerImpl {
   };
 
   setupDemoProject = async () => {
-    const { path, projectMeta } = this;
+    const { projectMeta } = this;
 
     const stats = await this.stat(DIRECTORY_BATA_PROJECT);
     if (stats && stats.type === 'DIRECTORY') {

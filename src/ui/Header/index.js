@@ -1,5 +1,4 @@
 import React from 'react';
-import classnames from 'classnames';
 import gravatar from 'gravatar';
 
 import { ContextMenu, ContextMenuItem, ContextMenuDivider } from './../ContextMenu';
@@ -78,7 +77,7 @@ class Header extends React.PureComponent {
         <React.Fragment>
           <div className="Header-menu_knob" onClick={() => this.toggleMenuOpen()}>
             <div className="Header-user_avatar">
-              <object data={thumbnailURL} type="image/png" />
+              <object data={thumbnailURL} title="avatar" type="image/png" />
             </div>
           </div>
           {menuOpen &&

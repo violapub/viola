@@ -3,7 +3,7 @@ import classnames from 'classnames';
 import { ProjectManager } from './../../misc/project';
 import { Header } from './../../ui/Header';
 import { ViolaLogo } from './../../ui/Logo';
-import { Modal, ModalHeader, ModalBody, ModalFooter } from './../../ui/Modal';
+import { Modal, ModalHeader, ModalBody } from './../../ui/Modal';
 import { ProgressBar } from './../../ui/ProgressBar';
 import SideNav from './../SideNav';
 import ToolBar from './../ToolBar';
@@ -12,7 +12,6 @@ import './App.css';
 const {
   REACT_APP_BRAMBLE_HOST_URL,
   REACT_APP_CELLO_HOST_URL,
-  REACT_APP_VERSION,
   REACT_APP_VIOLA_HOMEPAGE,
 } = process.env;
 
