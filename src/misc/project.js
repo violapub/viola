@@ -505,13 +505,16 @@ export class ProjectManager extends FilerImpl {
     }
 
     // Remove local projects that the user doesn't have
-    const remoteProjectIds = projects.map(p => p.id);
-    const localProjectIds = (await this.readdir(DIRECTORY_PROJECTS))
-      .filter(name => !name.startsWith('.'));
-    await Promise.all(
-      localProjectIds.filter(id => !remoteProjectIds.includes(id))
-        .map(id => this.removeFile(path.join(DIRECTORY_PROJECTS, id), true))
-    );
+    const stats = await this.stat(DIRECTORY_PROJECTS);
+    if (stats && stats.type === 'DIRECTORY') {
+      const remoteProjectIds = projects.map(p => p.id);
+      const localProjectIds = (await this.readdir(DIRECTORY_PROJECTS))
+        .filter(name => !name.startsWith('.'));
+      await Promise.all(
+        localProjectIds.filter(id => !remoteProjectIds.includes(id))
+          .map(id => this.removeFile(path.join(DIRECTORY_PROJECTS, id), true))
+      );
+    }
 
     const projectRoot = path.join(DIRECTORY_PROJECTS, projectId);
     this.projectRoot = projectRoot;
