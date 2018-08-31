@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
 import classnames from 'classnames';
-import Project from './../../misc/project';
+import { ProjectManager } from './../../misc/project';
+import { Header } from './../../ui/Header';
 import { ViolaLogo } from './../../ui/Logo';
-import { StatusIndicator } from './../../ui/StatusIndicator';
+import { Modal, ModalHeader, ModalBody } from './../../ui/Modal';
 import { ProgressBar } from './../../ui/ProgressBar';
 import SideNav from './../SideNav';
 import ToolBar from './../ToolBar';
@@ -10,18 +11,17 @@ import './App.css';
 
 const {
   REACT_APP_BRAMBLE_HOST_URL,
-  REACT_APP_VERSION,
+  REACT_APP_CELLO_HOST_URL,
   REACT_APP_VIOLA_HOMEPAGE,
 } = process.env;
 
+const CELLO_SIGNUP_URL = REACT_APP_CELLO_HOST_URL + '/login';
+const CELLO_LOGIN_URL = REACT_APP_CELLO_HOST_URL + '/login';
+const CELLO_PROJECTS_URL = REACT_APP_CELLO_HOST_URL + '/projects';
+const CELLO_SIGNOUT_URL = REACT_APP_CELLO_HOST_URL + '/auth/signout';
+
 // eslint-disable-next-line
 const Bramble = window.Bramble;
-
-let projectRoot = '/viola';
-// Use beta subdirectory
-if (REACT_APP_VERSION.split('.')[0] === '0') {
-  projectRoot += '/beta';
-}
 
 // Constants for displaying loading progress
 const PROGRESS_RATE_FOR_LOADING_VIOLA = 0.1;
@@ -32,7 +32,7 @@ class App extends Component {
 
   state = {
     bramble: null,
-    modalOpen: false,
+    brambleModalOpen: false,
     hideSpinner: false,
     fontLoaded: false,
     spinnerDisplayMode: 'flex',
@@ -41,17 +41,34 @@ class App extends Component {
     loadingViolaProgress: 0,
     loadingBrambleProgress: 0,
     brambleMountable: false,
+    user: null,
+    projectInfo: null,
+    appError: null,
+    headerMenuStatus: 'LOADING',
   };
 
-  downloadProject = async () => {
+  setupProject = async () => {
     const fs = Bramble.getFileSystem();
     const sh = new fs.Shell();
     const path = Bramble.Filer.Path;
     const FilerBuffer = Bramble.Filer.Buffer;
-    const { projectMeta } = this.props.data;
-    const project = new Project({ path, fs, sh, FilerBuffer, projectMeta, projectRoot });
 
-    await project.initialize();
+    const project = new ProjectManager();
+    try {
+      await project.initialize({
+        ...this.props.data,
+        path, fs, sh, FilerBuffer,
+      });
+    } catch (appError) {
+      console.error(appError);
+      this.setState({ appError });
+    }
+    this.project = project;
+    this.setState({
+      user: project.session && project.session.user,
+      projectInfo: project.getProjectInfo(),
+      headerMenuStatus: project.session? 'LOADED' : 'DISCONNECTED',
+    });
   };
 
   initBramble = (bramble) => {
@@ -59,14 +76,16 @@ class App extends Component {
     bramble.useDarkTheme();   // if not set, sometimes use light theme
     bramble.on('dialogOpened', () => {
       this.setState(Object.assign({}, this.state, {
-        modalOpen: true,
+        brambleModalOpen: true,
       }));
     });
     bramble.on('dialogClosed', () => {
       this.setState(Object.assign({}, this.state, {
-        modalOpen: false,
+        brambleModalOpen: false,
       }));
     });
+
+    this.project.setupFileWatcher(bramble);
 
     this.setState(Object.assign({}, this.state, {
       bramble: bramble,
@@ -143,9 +162,7 @@ class App extends Component {
         this.setState({
           brambleMountable: true,
         });
-        this.downloadProject().then(() => {
-          Bramble.mount(projectRoot);
-        });
+        this.setupProject();
       }
     });
   }
@@ -153,7 +170,7 @@ class App extends Component {
   render() {
     const {
       bramble,
-      modalOpen,
+      brambleModalOpen,
       hideSpinner,
       fontLoaded,
       spinnerDisplayMode,
@@ -162,9 +179,12 @@ class App extends Component {
       loadingViolaProgress,
       loadingBrambleProgress,
       brambleMountable,
+      user,
+      projectInfo,
+      headerMenuStatus,
     } = this.state;
     const appClasses = classnames('App', {
-      'modal-open': modalOpen,
+      'modal-open': brambleModalOpen,
       'fullscreen': fullscreenEnabled,
       'sidebar-hidden': sidebarHidden,
     });
@@ -181,20 +201,16 @@ class App extends Component {
 
     return (
       <div className={appClasses}>
-        <nav className="App-header">
-          <div className="App-header-title">
-            <a href={REACT_APP_VIOLA_HOMEPAGE}>
-              <ViolaLogo white className="App-header-title-logo" />
-            </a>
-          </div>
-          <div className="App-header-lr">
-            <div className="App-header-left">
-            </div>
-            <div className="App-header-right">
-              <StatusIndicator />
-            </div>
-          </div>
-        </nav>
+        <Header
+          user={user}
+          projectName={projectInfo && projectInfo.title}
+          menuStatus={headerMenuStatus}
+          homepageURL={REACT_APP_VIOLA_HOMEPAGE}
+          loginURL={CELLO_LOGIN_URL}
+          signupURL={CELLO_SIGNUP_URL}
+          projectListURL={CELLO_PROJECTS_URL}
+          logoutURL={CELLO_SIGNOUT_URL}
+        />
         {bramble &&
           <ToolBar bramble={bramble}
             fullscreenEnabled={fullscreenEnabled}
@@ -218,9 +234,49 @@ class App extends Component {
           </div>
           <ProgressBar value={progressValue} max={1} className="App-loading_progress_bar"/>
         </div>
+        {this._renderError()}
       </div>
     );
   }
+
+  _renderError = () => {
+    const { appError } = this.state;
+    if (!appError) {
+      return <Modal show={false}></Modal>
+    }
+
+    const errMsg = `プロジェクトの読み込みに失敗しました。(${appError.name})`;
+    const errInstruction = this._renderErrorInstructionMessage(appError);
+    return (
+      <Modal show={appError}>
+        <React.Fragment>
+          <ModalHeader>
+            <h2>エラー</h2>
+          </ModalHeader>
+          <ModalBody>
+            {errMsg}
+            {errInstruction
+              ? <div className="App-error_instruction">{errInstruction}</div>
+              : null
+            }
+          </ModalBody>
+        </React.Fragment>
+      </Modal>
+    );
+  }
+
+  _renderErrorInstructionMessage = (error) => {
+    if (error.name === 'NotLoggedInError') {
+      return (
+        <div>
+          ログインはお済みですか？&nbsp;
+          <a href={CELLO_LOGIN_URL}>ログイン</a>
+        </div>
+      );
+    } else {
+      return null;
+    }
+  };
 }
 
 export default App;

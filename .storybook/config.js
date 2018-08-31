@@ -5,8 +5,11 @@ import StorybookContainer from './StorybookContainer';
 addDecorator(story => <StorybookContainer story={story} />);
 
 function loadStories() {
-  const req = require.context('../src/ui', true, /\-story\.js$/);
-  req.keys().forEach(filename => req(filename));
+  const components = require.context('../src/components', true, /\-story\.js$/);
+  components.keys().forEach(filename => components(filename));
+
+  const ui = require.context('../src/ui', true, /\-story\.js$/);
+  ui.keys().forEach(filename => ui(filename));
 }
 
 configure(loadStories, module);

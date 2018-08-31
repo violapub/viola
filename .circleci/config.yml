@@ -87,6 +87,7 @@ jobs:
       - REACT_APP_PRINT_PAGE_HOST_URL: https://draft-editor.viola.pub/thirdparty/viola-savepdf/index.html
       - REACT_APP_VFS_ROOT_URL: https://draft-editor.viola.pub/vfs/
       - REACT_APP_VIOLA_HOMEPAGE: https://viola.pub
+      - REACT_APP_CELLO_HOST_URL: https://staging.viola.pub
 
     steps:
       - attach_workspace:
@@ -107,6 +108,7 @@ jobs:
       - REACT_APP_PRINT_PAGE_HOST_URL: https://editor.viola.pub/thirdparty/viola-savepdf/index.html
       - REACT_APP_VFS_ROOT_URL: https://editor.viola.pub/vfs/
       - REACT_APP_VIOLA_HOMEPAGE: https://viola.pub
+      - REACT_APP_CELLO_HOST_URL: https://viola.pub
 
     steps:
       - attach_workspace:

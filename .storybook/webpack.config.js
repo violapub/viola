@@ -7,6 +7,7 @@
 // to "React Create App". This only has babel loader to load JavaScript.
 
 const autoprefixer = require('autoprefixer');
+const paths = require('./../config/paths');
 
 module.exports = {
   plugins: [
@@ -17,9 +18,11 @@ module.exports = {
       {
         exclude: [
           /\.html$/,
+          /\.ejs$/,
           /\.(js|jsx)$/,
           /\.css$/,
           /\.json$/,
+          new RegExp(`${paths.appSrc}.+\\.svg`),
         ],
         loader: require.resolve('file-loader'),
       },
@@ -51,6 +54,12 @@ module.exports = {
               ],
             },
           },
+        ],
+      },
+      {
+        test: new RegExp(`${paths.appSrc}.+\\.svg`),
+        use: [
+          require.resolve('react-svg-loader'),
         ],
       },
     ],

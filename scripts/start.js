@@ -70,6 +70,7 @@ Promise.all([
     proxySetting = Object.assign({}, proxySetting, {
       '/bramble': {
         target: `${protocol}://${HOST}:${bramblePort}`,
+        secure: false,
         pathRewrite: {
           '^/bramble': '/',
         },
@@ -97,6 +98,7 @@ Promise.all([
     // Serve bramble assets in another port
     const brambleServer = serve(paths.brambleDist, {
       port: bramblePort,
+      ssl: protocol === 'https',
       cache: 0,
       cors: true,
       silent: true,

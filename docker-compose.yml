@@ -1,0 +1,54 @@
+#
+# A docker-compose sample file for hosting over TLS.
+#
+# To enable TLS over hosting,
+#
+# 1. Update /etc/hosts
+#     ```
+#     127.0.0.1 writing.violadev.localdomain
+#     127.0.0.1 editor.violadev.localdomain
+#     ````
+#
+# 2. Start docker-proxy container
+#     ```
+#     $ docker run -d -p 80:80 -p 443:443 \
+#         -v /path/to/certs:/etc/nginx/certs:ro \
+#         -v /var/run/docker.sock:/tmp/docker.sock:ro \
+#         jwilder/nginx-proxy
+#     ```
+#
+# 3. Run docker-compose up
+#
+
+version: '3'
+services:
+  app:
+    container_name: viola_app
+    image: node:10-slim
+    network_mode: bridge
+    expose:
+      - 3000
+    volumes:
+      - .:/viola
+    working_dir: /viola
+    environment:
+      VIRTUAL_HOST: writing.violadev.localdomain
+      VIRTUAL_PORT: 3000
+      REACT_APP_BRAMBLE_HOST_URL: https://editor.violadev.localdomain/index.html?locale=ja
+      REACT_APP_PRINT_PAGE_HOST_URL: https://editor.violadev.localdomain/thirdparty/viola-savepdf/index.html
+      REACT_APP_VFS_ROOT_URL: https://editor.violadev.localdomain/vfs/
+      REACT_APP_VIOLA_HOMEPAGE: https://violadev.localdomain
+      REACT_APP_CELLO_HOST_URL: https://violadev.localdomain
+    command: yarn start
+
+  bramble:
+    container_name: viola_bramble
+    image: nginx:latest
+    network_mode: bridge
+    expose:
+      - 80
+    volumes:
+      - ./brackets/dist:/usr/share/nginx/html:ro
+    environment:
+      VIRTUAL_HOST: editor.violadev.localdomain
+      VIRTUAL_PORT: 80

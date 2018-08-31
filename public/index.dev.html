@@ -1,6 +1,8 @@
 <%
+  const brambleRoot = process.env.REACT_APP_BRAMBLE_HOST_URL
+    .match(/^(.+)\/.*$/)[1];
   const violaDataStr = encodeURIComponent(JSON.stringify({
-    projectMeta: '/template/welcome/meta.json',
+    projectMeta: 'https://raw.githubusercontent.com/violapub/templates/master/welcome-ja/meta.toml',
   }));
 %>
 
@@ -30,7 +32,7 @@
     <!--
       Paths stating '/bramble' will be proxy to http://localhost:29910/dist
     -->
-    <script src="/bramble/bramble.js"></script>
+    <script src="<%= brambleRoot %>/bramble.js"></script>
   </head>
   <body>
     <noscript>

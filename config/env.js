@@ -29,11 +29,14 @@ var dotenvFiles = [
 // if this file is missing. dotenv will never modify any environment variables
 // that have already been set.
 // https://github.com/motdotla/dotenv
+// https://github.com/motdotla/dotenv-expand
 dotenvFiles.forEach(dotenvFile => {
   if (fs.existsSync(dotenvFile)) {
-    require('dotenv').config({
-      path: dotenvFile,
-    });
+    require('dotenv-expand')(
+      require('dotenv').config({
+        path: dotenvFile,
+      })
+    );
   }
 });
 
