@@ -273,11 +273,21 @@ export class SyncManager extends FilerImpl {
               })
             )
           ).reduce((acc, val) => acc.concat(val), []);
-        const tar = Tar(files);
-        const gzipped = gz.compress({ buffer: tar });
+        let postBuffer = null;
+        if (files.length > 0) {
+          const tar = Tar(files);
+          const gzipped = gz.compress({ buffer: tar });
+          postBuffer = gzipped.buffer;
+        }
+
+        if (retroactiveEvents.length === 0) {
+          // No need to sync project
+          this.syncingSemaphore += 1;
+          return;
+        }
 
         // transmit updated files
-        await axios.post(API_PROJECT_COMMIT, gzipped.buffer, {
+        await axios.post(API_PROJECT_COMMIT, postBuffer, {
           headers: {
             'Content-Type': 'application/octet-stream',
             'Viola-API-Arg': encodeURIComponent(JSON.stringify({
