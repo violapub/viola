@@ -1,0 +1,16 @@
+{
+  "components.App.faliedToLoad": "Failed to load the project. ({errorName})",
+  "components.App.loginInstruction": "Have you logged in yet?",
+  "components.ToolBar.download": "Download this project",
+  "components.ToolBar.printPage": "Open the print page",
+  "misc.error": "Error",
+  "misc.login": "Login",
+  "misc.logout": "Logout",
+  "misc.projectList": "Project list",
+  "misc.signUp": "Sign up",
+  "ui.Header.connectionFailed": "Editing content won't be synchronized because a connection to Viola server has failed. Please check your connection status and reload it later.",
+  "ui.Header.loginInstruction": "If you have the account...",
+  "ui.Header.notConnected": "Not connected",
+  "ui.Header.notLoggedIn": "Not logged in",
+  "ui.Header.signUpInstruction": "You can make backups of your project by signing up."
+}

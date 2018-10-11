@@ -1,10 +1,19 @@
 import React from 'react';
 import gravatar from 'gravatar';
-
+import { defineMessages, FormattedMessage } from 'react-intl';
+import noun from '../../misc/noun';
 import { ContextMenu, ContextMenuItem, ContextMenuDivider } from './../ContextMenu';
 import { ViolaLogo } from './../Logo';
 import { StatusIndicator } from './../StatusIndicator';
 import './Header.css';
+
+const messages = defineMessages({
+  notLoggedIn: 'Not logged in',
+  loginInstruction: 'If you have the account…',
+  signUpInstruction: 'You can make backups of your project by signing up.',
+  notConnected: 'Not connected',
+  connectionFailed: 'Editing content won\'t be synchronized because a connection to Viola server has failed. Please check your connection status and reload it later.',
+});
 
 class Header extends React.PureComponent {
   props: {
@@ -90,14 +99,11 @@ class Header extends React.PureComponent {
               </ContextMenuItem>
               <ContextMenuDivider />
               <ContextMenuItem href={projectListURL}>
-                プロジェクト一覧
+                <FormattedMessage {...noun.projectList} />
               </ContextMenuItem>
-              {/* <ContextMenuItem onClick={() => {console.log('not implemented')}}>
-                プロジェクトを削除
-              </ContextMenuItem> */}
               <ContextMenuDivider />
               <ContextMenuItem href={logoutURL}>
-                ログアウト
+                <FormattedMessage {...noun.logout} />
               </ContextMenuItem>
               <ContextMenuDivider />
               <ContextMenuItem>
@@ -111,22 +117,22 @@ class Header extends React.PureComponent {
       return (
         <React.Fragment>
           <div className="Header-menu_knob" onClick={this.toggleMenuOpen}>
-            <span>未ログイン</span>
+            <span><FormattedMessage {...messages.notLoggedIn}/></span>
           </div>
           {menuOpen &&
             <ContextMenu alignRight black onClick={() => this.toggleMenuOpen(false)}>
               <ContextMenuItem href={loginURL}>
                 <div className="Header-context_label">
-                  アカウントをお持ちの場合
+                  <FormattedMessage {...messages.loginInstruction} />
                 </div>
-                ログイン
+                <FormattedMessage {...noun.login} />
               </ContextMenuItem>
               <ContextMenuDivider />
               <ContextMenuItem href={signupURL}>
                 <div className="Header-context_label">
-                  アカウント登録で、プロジェクトのバックアップを作成できます。
+                  <FormattedMessage {...messages.signUpInstruction} />
                 </div>
-                アカウント作成
+                <FormattedMessage {...noun.signUp} />
               </ContextMenuItem>
               <ContextMenuDivider />
               <ContextMenuItem>
@@ -144,14 +150,13 @@ class Header extends React.PureComponent {
     return (
       <React.Fragment>
         <div className="Header-menu_knob" onClick={this.toggleMenuOpen}>
-          <span>サーバー未接続</span>
+          <span><FormattedMessage {...messages.notConnected} /></span>
         </div>
         {menuOpen &&
           <ContextMenu alignRight black onClick={() => this.toggleMenuOpen(false)}>
             <ContextMenuItem>
               <div className="Header-context_label">
-                Violaサーバーとの接続に失敗したため、編集内容は同期されません。
-                接続状況を確認して、後ほど再読込してください。
+                <FormattedMessage {...messages.connectionFailed} />
               </div>
             </ContextMenuItem>
           </ContextMenu>
