@@ -1,10 +1,16 @@
 import React from 'react';
+import { defineMessages, FormattedMessage } from 'react-intl';
 import classnames from 'classnames';
 import { IconButton, SelectiveRippleButton } from './../../ui/Button';
 import { ContextMenu, ContextMenuItem } from './../../ui/ContextMenu';
 import './ToolBar.css';
 
 const { REACT_APP_PRINT_PAGE_HOST_URL } = process.env;
+
+const messages = defineMessages({
+  printPage: 'Open the print page',
+  download: 'Download this project',
+});
 
 export default class ToolBar extends React.Component {
 
@@ -192,8 +198,12 @@ export default class ToolBar extends React.Component {
             <IconButton name="cog" onClick={() => { this.setState({ editorOptionOpen: !editorOptionOpen }); }} />
             {editorOptionOpen &&
               <ContextMenu onClick={() => { this.setState({ editorOptionOpen: false }); }}>
-                <ContextMenuItem onClick={this.onOpenPrintPageButtonClick}>印刷ページを開く</ContextMenuItem>
-                <ContextMenuItem onClick={this.onExportButtonClick}>プロジェクトをダウンロード</ContextMenuItem>
+                <ContextMenuItem onClick={this.onOpenPrintPageButtonClick}>
+                  <FormattedMessage {...messages.printPage} />
+                </ContextMenuItem>
+                <ContextMenuItem onClick={this.onExportButtonClick}>
+                  <FormattedMessage {...messages.download} />
+                </ContextMenuItem>
               </ContextMenu>
             }
           </div>

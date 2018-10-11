@@ -16,6 +16,7 @@
     "babel-eslint": "7.2.3",
     "babel-jest": "20.0.3",
     "babel-loader": "7.1.2",
+    "babel-plugin-react-intl-auto": "^1.1.1",
     "babel-preset-react-app": "^3.1.1",
     "babel-runtime": "6.26.0",
     "case-sensitive-paths-webpack-plugin": "2.1.1",
@@ -31,6 +32,7 @@
     "eslint-plugin-import": "2.8.0",
     "eslint-plugin-jsx-a11y": "5.1.1",
     "eslint-plugin-react": "7.4.0",
+    "extract-react-intl-messages": "^0.10.0",
     "extract-text-webpack-plugin": "3.0.2",
     "file-loader": "1.1.5",
     "fs-extra": "3.0.1",
@@ -49,9 +51,10 @@
     "react-dev-utils": "^5.0.1",
     "react-dom": "^16.3.2",
     "react-fa": "^5.0.0",
+    "react-intl": "^2.7.1",
     "react-svg-loader": "^2.1.0",
     "react-transition-group": "^2.3.1",
-    "serve": "^10.0.0",
+    "serve": "6.5.8",
     "shortid": "^2.2.8",
     "style-loader": "0.19.0",
     "sw-precache-webpack-plugin": "0.11.4",
@@ -70,6 +73,7 @@
     "start": "node scripts/start.js",
     "build": "node scripts/build.js",
     "test": "node scripts/test.js --env=jsdom",
+    "localize": "NODE_ENV=development extract-messages -l=en,ja -o src/locale --flat 'src/**/*.js'",
     "storybook": "start-storybook -p 6006",
     "build-storybook": "build-storybook",
     "bramble:install": "cd brackets && npm install",
@@ -104,6 +108,14 @@
   "babel": {
     "presets": [
       "react-app"
+    ],
+    "plugins": [
+      [
+        "react-intl-auto",
+        {
+          "removePrefix": "src/"
+        }
+      ]
     ]
   },
   "eslintConfig": {
