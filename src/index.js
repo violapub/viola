@@ -16,10 +16,10 @@ if (dataDOM && dataDOM.dataset['json']) {
   }
 }
 const routeAction = route();
-const App_ = withIntl(App);
+const IntlApp = withIntl(App);
 
 ReactDOM.render(
-  <App_ data={{ ...data, routeAction }} />,
+  <IntlApp data={{ ...data, routeAction }} />,
   document.getElementById('root')
 );
 registerServiceWorker();
