@@ -1,3 +1,12 @@
+import { getLocaleKeyByApplicableObj } from '../withIntl';
+
+// prettier-ignore
+const demoProjectMetaFiles = {
+  ja: 'https://raw.githubusercontent.com/violapub/templates/master/welcome-ja/meta.toml',
+};
+const defaultProjectMeta =
+  'https://raw.githubusercontent.com/violapub/templates/master/welcome-en/meta.toml';
+
 export default function route() {
   const { pathname } = window.location;
 
@@ -31,5 +40,10 @@ export default function route() {
   else if (pathname !== '/') {
     window.history.replaceState('', null, '/');
   }
-  return { role: null };
-};
+  const localeTag = getLocaleKeyByApplicableObj(demoProjectMetaFiles);
+  const projectMeta = localeTag? demoProjectMetaFiles[localeTag] : defaultProjectMeta;
+  return {
+    role: 'demo',
+    projectMeta,
+  };
+}
