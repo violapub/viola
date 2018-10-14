@@ -1,0 +1,16 @@
+{
+  "components.App.faliedToLoad": "プロジェクトの読み込みに失敗しました。 ({errorName})",
+  "components.App.loginInstruction": "ログインはお済みですか？",
+  "components.ToolBar.download": "プロジェクトをダウンロード",
+  "components.ToolBar.printPage": "印刷ページを開く",
+  "misc.error": "エラー",
+  "misc.login": "ログイン",
+  "misc.logout": "ログアウト",
+  "misc.projectList": "プロジェクト一覧",
+  "misc.signUp": "アカウント登録",
+  "ui.Header.connectionFailed": "Violaサーバーとの接続に失敗したため、編集内容は同期されません。接続状況を確認して、後ほど再読込してください。",
+  "ui.Header.loginInstruction": "アカウントをお持ちの場合",
+  "ui.Header.notConnected": "サーバー未接続",
+  "ui.Header.notLoggedIn": "未ログイン",
+  "ui.Header.signUpInstruction": "アカウント登録で、プロジェクトのバックアップを作成できます。"
+}

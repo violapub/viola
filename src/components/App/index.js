@@ -1,10 +1,12 @@
 import React, { Component } from 'react';
+import { defineMessages, FormattedMessage } from 'react-intl';
 import classnames from 'classnames';
 import { ProjectManager } from './../../misc/project';
 import { Header } from './../../ui/Header';
 import { ViolaLogo } from './../../ui/Logo';
 import { Modal, ModalHeader, ModalBody } from './../../ui/Modal';
 import { ProgressBar } from './../../ui/ProgressBar';
+import noun from './../../misc/noun';
 import SideNav from './../SideNav';
 import ToolBar from './../ToolBar';
 import './App.css';
@@ -27,6 +29,11 @@ const Bramble = window.Bramble;
 const PROGRESS_RATE_FOR_LOADING_VIOLA = 0.1;
 const PROGRESS_RATE_FOR_LOADING_BRAMBLE = 0.7;
 const PROGRESS_RATE_FOR_LOADING_PROJECT = 0.2;
+
+const messages = defineMessages({
+  faliedToLoad: 'Failed to load the project. ({errorName})',
+  loginInstruction: 'Have you logged in yet?',
+});
 
 class App extends Component {
 
@@ -245,16 +252,16 @@ class App extends Component {
       return <Modal show={false}></Modal>
     }
 
-    const errMsg = `プロジェクトの読み込みに失敗しました。(${appError.name})`;
     const errInstruction = this._renderErrorInstructionMessage(appError);
     return (
       <Modal show={appError}>
         <React.Fragment>
           <ModalHeader>
-            <h2>エラー</h2>
+            <h2><FormattedMessage {...noun.error} /></h2>
           </ModalHeader>
           <ModalBody>
-            {errMsg}
+            <FormattedMessage {...messages.faliedToLoad}
+              values={{ errorName: appError.name }} />
             {errInstruction
               ? <div className="App-error_instruction">{errInstruction}</div>
               : null
@@ -269,8 +276,8 @@ class App extends Component {
     if (error.name === 'NotLoggedInError') {
       return (
         <div>
-          ログインはお済みですか？&nbsp;
-          <a href={CELLO_LOGIN_URL}>ログイン</a>
+          <FormattedMessage {...messages.loginInstruction} />&nbsp;
+          <a href={CELLO_LOGIN_URL}><FormattedMessage {...noun.login} /></a>
         </div>
       );
     } else {

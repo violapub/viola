@@ -408,15 +408,12 @@ export class ProjectManager extends FilerImpl {
     fs,
     sh,
     FilerBuffer,
-    role,
-    projectMeta,
     routeAction,
   }) => {
     this.path = path;
     this.fs = fs;
     this.sh = sh;
     this.FilerBuffer = FilerBuffer;
-    this.projectMeta = projectMeta;
     this.projectRoot = null;
     this.projectInfo = null;
     this.syncManager = null;
@@ -451,8 +448,12 @@ export class ProjectManager extends FilerImpl {
       const { templateName } = routeAction;
       await this.setupWithTemplate(templateName);
     }
+    else if (routeAction.role === 'demo') {
+      const { projectMeta } = routeAction;
+      await this.setupDemoProject(projectMeta);
+    }
     else {
-      await this.setupDemoProject();
+      throw new Error(`Unknown role: ${routeAction.role}`);
     }
   };
 
@@ -552,9 +553,7 @@ export class ProjectManager extends FilerImpl {
     Bramble.mount(projectRoot);
   };
 
-  setupDemoProject = async () => {
-    const { projectMeta } = this;
-
+  setupDemoProject = async (projectMeta) => {
     const stats = await this.stat(DIRECTORY_BATA_PROJECT);
     if (stats && stats.type === 'DIRECTORY') {
       // use existing beta project as demo project
