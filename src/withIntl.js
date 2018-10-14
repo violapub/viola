@@ -11,19 +11,22 @@ const messageDefs = {
   en: enMessage,
   ja: jaMessage,
 };
-const localeTag = window.navigator.language;
+
+export function getLocaleKeyByApplicableObj(obj) {
+  const localeTag = window.navigator.language;
+  return localeTag in obj
+    ? localeTag
+    : localeTag.split('-')[0] in obj
+      ? localeTag.split('-')[0]
+      : null;
+}
 
 export default ComposedComponent => {
   return class WithIntl extends React.Component {
     render() {
-      const messages =
-        localeTag in messageDefs
-          ? messageDefs[localeTag]
-          : localeTag.split('-')[0] in messageDefs
-            ? messageDefs[localeTag.split('-')[0]]
-            : {};
+      const localeTag = getLocaleKeyByApplicableObj(messageDefs) || 'en';
       return (
-        <IntlProvider locale={localeTag} messages={messages}>
+        <IntlProvider locale={localeTag} messages={messageDefs[localeTag]}>
           <ComposedComponent {...this.props} />
         </IntlProvider>
       );
