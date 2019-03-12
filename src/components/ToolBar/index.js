@@ -155,7 +155,7 @@ export default class ToolBar extends React.Component {
       return;
     }
     const openUrl = `${REACT_APP_PRINT_PAGE_HOST_URL}?render=${encodeURIComponent(previewURL)}`;
-    window.open(openUrl, 'Viola print page', 'width=800,height=600');
+    window.open(openUrl, 'Viola print page', 'width=800,height=700');
   }
 
   onExportButtonClick = () => {
